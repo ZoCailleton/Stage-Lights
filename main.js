@@ -184,6 +184,13 @@ const play = () => {
 
 }
 
-audioElement.addEventListener('play', play);
+const startElement = document.querySelector('.btn.start');
+const menuSection = document.querySelector('section.menu');
+
+startElement.addEventListener('click', () => {
+  menuSection.style.display = 'none';
+  audioElement.play();
+  play();
+});
 
 //play();
