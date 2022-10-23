@@ -3,36 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit&display=swap" rel="stylesheet">
     <title>The Audio Landscape - A Three JS Experience</title>
   </head>
   <body>
-    <section class="menu">
-      <div class="inner">
-        <nav>
-          <div class="track">
-            <div class="cover"></div>
-            <p>No Role Modelz</p>
-            <p>J. Cole</p>
+    <div class="app">
+      <main>
+        <section class="intro">
+          <div class="inner">
+            <h1 class="heading">The Audio Landscape</h1>
+            <p>A Three JS Experiment</p>
+            <div class="cta">Start the experience</div>
           </div>
-          <div class="track">
-            <div class="cover"></div>
-            <p>Honest</p>
-            <p>Baby Keem</p>
+        </section>
+        <section class="menu">
+          <div class="inner">
+            <nav>
+              <div class="track active">
+                <div class="cover">
+                  <img src="./covers/2014-forest-drive-hill.png" alt="2014 Forest Drive Hill by J. Cole">
+                </div>
+                <p class="title">No Role Modelz</p>
+                <p class="author">J. Cole</p>
+              </div>
+              <div class="track">
+                <div class="cover">
+                  <img src="./covers/die-for-my-bitch.png" alt="Die for my bitch by Baby Keem">
+                </div>
+                <p class="title">Honest</p>
+                <p class="author">Baby Keem</p>
+              </div>
+              <div class="track">
+                <div class="cover"></div>
+                <p class="title">Bitch don't kill my vibe</p>
+                <p class="author">Kendrick Lamar</p>
+              </div>
+              <div class="track">
+                <div class="cover"></div>
+                <p class="title">Los Pollos Hermanos</p>
+                <p class="author">Knucks</p>
+              </div>
+            </nav>
+            <div class="cta start">Generate the landscape</div>
           </div>
-          <div class="track">
-            <div class="cover"></div>
-            <p>Bitch don't kill my vibe</p>
-            <p>Kendrick Lamar</p>
-          </div>
-        </nav>
-        <div class="btn start">Generate the landscape</div>
-      </div>
-    </section>
-    <audio
-      id="audio"
-      src="./audio/no-role-modelz.mp3"
-      controls
-    ></audio>
+        </section>
+      </main>
+      <audio
+        id="audio"
+        src="./audio/no-role-modelz.mp3"
+        controls
+      ></audio>
+    </div>
     <script type="module" src="/main.js"></script>
   </body>
 </html>

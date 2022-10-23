@@ -1,23 +1,45 @@
 * {
     box-sizing: border-box;
+    font-family: 'Outfit';
 }
 
 body {
-    max-height: 100vh;
     background-color: #000;
     margin: 0;
     color: #fff;
+}
+
+.app {
+    height: 100vh;
+    position: relative;
     overflow: hidden;
+    .cta {
+        width: 100%;
+        max-width: 350px;
+        background-color: #3c2ce8;
+        padding: 20px 25px;
+        border-radius: 5px;
+        display: inline-block;
+        text-align: center;
+        cursor: pointer;
+        transition: 100ms;
+        &:hover {
+            opacity: .75;
+        }
+    }
+    audio {
+        display: none;
+    }
 }
 
-.btn {
-    background-color: #444;
-    padding: 15px 25px;
-    display: inline-block;
-}
-
-audio {
-    display: none;
+main {
+    width: 100%;
+    height: 200vh;
+    position: absolute;
+    transition: transform 500ms cubic-bezier(.8,-0.01,.61,.98);
+    &.launched {
+        transform: translateY(-100vh);
+    }
 }
 
 section {
@@ -25,7 +47,6 @@ section {
     height: 100vh;
     background-color: #000;
     padding: 0 10%;
-    position: absolute;
     left: 0;
     top: 0;
     z-index: 1;
@@ -33,6 +54,33 @@ section {
         width: 100%;
         max-width: 1000px;
         margin: 0 auto;
+    }
+    &.intro {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        @media screen and (max-width: 600px) {
+            text-align: start;
+        }
+        .heading {
+            font-size: 5em;
+            @media screen and (max-width: 600px) {
+                font-size: 3.5em;
+            }
+        }
+        p {
+            margin-top: 1.5em;
+            text-transform: uppercase;
+            letter-spacing: 1em;
+            @media screen and (max-width: 600px) {
+                text-transform: none;
+                letter-spacing: inherit;
+            }
+        }
+        .cta {
+            margin-top: 2.5em;
+        }
     }
     &.menu {
         display: flex;
@@ -43,20 +91,51 @@ section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 50px;
             nav {
                 width: 100%;
                 display: flex;
                 flex-wrap: wrap;
                 gap: 35px;
                 .track {
-                    flex: 1 1 300px;
+                    flex: 1 1 200px;
+                    @media screen and (max-width: 600px) {
+                        flex: 1 1 100px;
+                    }
+                    opacity: .35;
+                    cursor: pointer;
+                    &:hover {
+                        opacity: .5;
+                    }
+                    &.active {
+                        opacity: 1;
+                    }
                     .cover {
                         width: 100%;
                         height: 200px;
+                        @media screen and (max-width: 600px) {
+                            height: 150px;
+                        }
                         background-color: #222;
+                        border-radius: 7px;
+                        overflow: hidden;
+                        img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                    }
+                    .title {
+                        margin-top: 1em;
+                        font-size: 1.1em;
+                    }
+                    .author {
+                        margin-top: .5em;
+                        opacity: .5;
                     }
                 }
+            }
+            .cta {
+                margin-top: 3em;
             }
         }
     }

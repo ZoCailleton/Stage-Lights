@@ -27,7 +27,10 @@ let dataArray = null;
 
 let uniforms = null;
 
-if(window.location.hash && window.location.hash === '#debug') {
+// Check the url to enter debug mode
+let debug = window.location.hash && window.location.hash === '#debug';
+
+if(debug) {
   // Debug
   gui = new dat.GUI();
 }
@@ -54,7 +57,7 @@ window.addEventListener('resize', () => {
 const setupCanvas = () => {
   
   cvs = document.createElement('canvas');
-  document.body.append(cvs);
+  document.querySelector('.app').append(cvs);
 
   cvs.width = SIZE.width;
   cvs.height = SIZE.height;
@@ -69,10 +72,10 @@ const setupScene = () => {
 
   scene = new THREE.Scene();
   
-  camera = new THREE.PerspectiveCamera(75, SIZE.width / SIZE.height, 0.1, 100);
+  camera = new THREE.PerspectiveCamera(100, SIZE.width / SIZE.height, 0.1, 100);
 
   camera.position.x = 0;
-  camera.position.y = -20;
+  if(!debug) camera.position.y = -100;
   camera.position.z = 30;
   camera.rotation.x = .5;
 
@@ -113,7 +116,7 @@ const setupAudioContext = () => {
 
 const setupPlane = () => {
 
-  const planeGeometry = new THREE.PlaneGeometry(150, 64, 64, 64);
+  const planeGeometry = new THREE.PlaneGeometry(150, 150, 64, 64);
   const planeCustomMaterial = new THREE.ShaderMaterial({
     uniforms,
     vertexShader: vertexShader(),
@@ -168,6 +171,8 @@ const play = () => {
   const tick = () => {
 
     const time = clock.getElapsedTime() * .01;
+    
+    if(!debug) camera.position.y += 0.1;
 
     analyser.getByteFrequencyData(dataArray);
 
@@ -184,13 +189,26 @@ const play = () => {
 
 }
 
-const startElement = document.querySelector('.btn.start');
-const menuSection = document.querySelector('section.menu');
+const intro_cta = document.querySelector('.intro .cta');
+const menu_cta = document.querySelector('.menu .cta.start');
 
-startElement.addEventListener('click', () => {
-  menuSection.style.display = 'none';
-  audioElement.play();
+const mainElement = document.querySelector('main');
+
+if(debug) {
+  
+  mainElement.style.display = 'none';
   play();
-});
 
-//play();
+} else {
+
+  intro_cta.addEventListener('click', () => {
+    mainElement.classList.add('launched');
+  });
+
+  menu_cta.addEventListener('click', () => {
+    mainElement.style.display = 'none';
+    audioElement.play();
+    play();
+  });
+
+}
