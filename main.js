@@ -5,7 +5,7 @@ import * as dat from 'dat.gui';
 import './reset.css';
 import './style.scss';
 
-import { vertexShader, fragmentShader } from "./shaders/shaders";
+import { vertexShader, vertexShader2, fragmentShader, fragmentShader2 } from "./shaders/shaders";
 
 const SIZE = {
   width: window.innerWidth,
@@ -27,10 +27,12 @@ let dataArray = null;
 
 let uniforms = null;
 
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+
 // Check the url to enter debug mode
 let debug = window.location.hash && window.location.hash === '#debug';
 
-if(debug) {
+if(!debug) {
   // Debug
   gui = new dat.GUI();
 }
@@ -75,9 +77,7 @@ const setupScene = () => {
   camera = new THREE.PerspectiveCamera(100, SIZE.width / SIZE.height, 0.1, 100);
 
   camera.position.x = 0;
-  if(!debug) camera.position.y = -100;
-  camera.position.z = 30;
-  camera.rotation.x = .5;
+  camera.position.z = 50;
 
   scene.add(camera);
 
@@ -88,6 +88,8 @@ const setupScene = () => {
 
   renderer.setSize(SIZE.width, SIZE.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  //new OrbitControls( camera, renderer.domElement )
 
   let ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
   ambientLight.castShadow = false;
@@ -100,7 +102,7 @@ const setupScene = () => {
 
 }
 
-const audioElement = document.getElementById('audio');
+let audioElement = document.querySelector('.track:first-child audio');
 
 const setupAudioContext = () => {
 
@@ -114,23 +116,93 @@ const setupAudioContext = () => {
 
 }
 
-const setupPlane = () => {
+function randomIntFromInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
 
-  const planeGeometry = new THREE.PlaneGeometry(150, 150, 64, 64);
-  const planeCustomMaterial = new THREE.ShaderMaterial({
+const setupParticles = () => {
+
+  for(let i=0; i<100; i++) {
+    const particleGeometry = new THREE.BoxGeometry(1, 1);
+    const particleMaterial = new THREE.ShaderMaterial({
+      wireframe: true
+    });
+    const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
+    particleMesh.position.x = randomIntFromInterval(-50, 50);
+    particleMesh.position.y = randomIntFromInterval(-50, 50);
+    particleMesh.position.z = randomIntFromInterval(-30, 30);
+    scene.add(particleMesh);
+  }
+
+}
+
+let planeMesh1 = null;
+let planeMesh2 = null;
+let planeMesh3 = null;
+let planeMesh4 = null;
+let planeMesh5 = null;
+
+const setupPlanes = () => {
+
+  const planeGeometry1 = new THREE.PlaneGeometry(50, 50, 150, 150);
+  const planeCustomMaterial1 = new THREE.ShaderMaterial({
     uniforms,
     vertexShader: vertexShader(),
     fragmentShader: fragmentShader(),
-    wireframe: true
+    //wireframe: true
   });
-  const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
-  scene.add(planeMesh);
+  planeMesh1 = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
+  scene.add(planeMesh1);
+
+  const planeGeometry2 = new THREE.PlaneGeometry(50, 50, 150, 150);
+  const planeCustomMaterial2 = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: vertexShader2(),
+    fragmentShader: fragmentShader2(),
+  });
+  planeMesh2 = new THREE.Mesh(planeGeometry2, planeCustomMaterial2);
+  scene.add(planeMesh2);
+  planeMesh2.position.x = -50;
+  planeMesh2.position.z = -50;
+
+  const planeGeometry3 = new THREE.PlaneGeometry(50, 50, 150, 150);
+  const planeCustomMaterial3 = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: vertexShader2(),
+    fragmentShader: fragmentShader2(),
+  });
+  planeMesh3 = new THREE.Mesh(planeGeometry3, planeCustomMaterial3);
+  scene.add(planeMesh3);
+  planeMesh3.position.x = 50;
+  planeMesh3.position.z = -50;
+
+  const planeGeometry4 = new THREE.PlaneGeometry(50, 50, 150, 150);
+  const planeCustomMaterial4 = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: vertexShader2(),
+    fragmentShader: fragmentShader2(),
+  });
+  planeMesh4 = new THREE.Mesh(planeGeometry4, planeCustomMaterial4);
+  scene.add(planeMesh4);
+  planeMesh4.position.y = 50;
+  planeMesh4.position.z = -50;
+
+  const planeGeometry5 = new THREE.PlaneGeometry(50, 50, 150, 150);
+  const planeCustomMaterial5 = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: vertexShader2(),
+    fragmentShader: fragmentShader2(),
+  });
+  planeMesh5 = new THREE.Mesh(planeGeometry5, planeCustomMaterial5);
+  scene.add(planeMesh5);
+  planeMesh5.position.y = -50;
+  planeMesh5.position.z = -50;
 
   if(gui != null) {
 
     const audioWaveGui = gui.addFolder("audio waveform");
     audioWaveGui
-      .add(planeCustomMaterial, "wireframe")
+      .add(planeCustomMaterial1, "wireframe")
       .name("wireframe")
       .listen();
     audioWaveGui
@@ -156,7 +228,7 @@ const play = () => {
     },
     u_amplitude: {
       type: "f",
-      value: 3.0,
+      value: 3.1,
     },
     u_data_arr: {
       type: "float[64]",
@@ -164,7 +236,8 @@ const play = () => {
     },
   };
   
-  setupPlane();
+  setupPlanes();
+  setupParticles();
 
   const clock = new THREE.Clock();
 
@@ -172,7 +245,15 @@ const play = () => {
 
     const time = clock.getElapsedTime() * .01;
     
-    if(!debug) camera.position.y += 0.1;
+    if(!debug) {
+      camera.rotation.z -= 0.001;
+      camera.position.z -= 0.1;
+      //planeMesh1.position.z -= 0.1;
+      //planeMesh2.position.z += 0.1;
+      //planeMesh3.position.z += 0.1;
+      //planeMesh4.position.z += 0.1;
+      //planeMesh5.position.z += 0.1;
+    }
 
     analyser.getByteFrequencyData(dataArray);
 
@@ -187,6 +268,12 @@ const play = () => {
 
   tick();
 
+}
+
+const reset = (collection, className) => {
+    for(let elt of document.querySelectorAll(collection)) {
+      elt.classList.remove(className);
+    }
 }
 
 const intro_cta = document.querySelector('.intro .cta');
@@ -204,6 +291,14 @@ if(debug) {
   intro_cta.addEventListener('click', () => {
     mainElement.classList.add('launched');
   });
+
+  for(let track of document.querySelectorAll('.track')) {
+    track.addEventListener('click', () => {
+      reset('.track', 'active');
+      audioElement = track.querySelector('audio');
+      track.classList.add('active');
+    });
+  }
 
   menu_cta.addEventListener('click', () => {
     mainElement.style.display = 'none';
