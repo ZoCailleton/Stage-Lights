@@ -10,55 +10,98 @@
   </head>
   <body>
     <div class="app">
-      <main class="launched">
+      <main>
         <section class="intro">
           <div class="inner">
-            <h1 class="heading">The Audio Island</h1>
+            <h1 class="heading">Space Visualizer</h1>
             <p>A Three JS Experiment</p>
             <div class="cta">Start the experience</div>
           </div>
         </section>
         <section class="menu">
           <div class="inner">
+            <p>Step 1</p>
+            <h2 class="heading">Choose the song to play</h2>
             <nav>
               <div class="track active">
                 <div class="cover">
                   <img src="./covers/2014-forest-drive-hill.png" alt="2014 Forest Drive Hill by J. Cole">
                 </div>
-                <p class="title">No Role Modelz</p>
+                <h3 class="title">No Role Modelz</p>
                 <p class="author">J. Cole</p>
                 <audio src="./audio/no-role-modelz.mp3"></audio>
               </div>
-              <div class="track">
+              <div data-verse="0.12" class="track">
                 <div class="cover">
                   <img src="./covers/die-for-my-bitch.png" alt="Die for my bitch by Baby Keem">
                 </div>
-                <p class="title">Honest</p>
+                <h3 class="title">Honest</p>
                 <p class="author">Baby Keem</p>
                 <audio src="./audio/honest.mp3"></audio>
               </div>
-              <div class="track">
+              <div data-verse="0.16" class="track">
                 <div class="cover">
                   <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
                 </div>
-                <p class="title">Bitch don't kill my vibe</p>
+                <h3 class="title">Bitch don't kill my vibe</p>
                 <p class="author">Kendrick Lamar</p>
                 <audio src="./audio/bitch-dont-kill-my-vibe.mp3"></audio>
               </div>
-              <div class="track">
+              <div data-verse=".15" class="track">
+                <div class="cover">
+                  <img src="./covers/papoose.jpg" alt="Good Kid Maad City by Kendrick Lamar">
+                </div>
+                <h3 class="title">Papoose</p>
+                <p class="author">Vald</p>
+                <audio src="./audio/vald-papoose.mp3"></audio>
+              </div>
+              <div data-verse="0.02" class="track">
+                <div class="cover">
+                  <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                </div>
+                <h3 class="title">Winter</p>
+                <p class="author">Vivaldi</p>
+                <audio src="./audio/vivaldi-winter.mp3"></audio>
+              </div>
+              <div data-verse="0.265" class="track hidden">
+                <div class="cover">
+                  <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                </div>
+                <h3 class="title">Drill</p>
+                <p class="author">Vivaldi</p>
+                <audio src="./audio/vivaldi-drill.mp3"></audio>
+              </div>
+              <div data-verse="0.12" class="track">
+                <div class="cover">
+                  <img src="./covers/praise-the-lord.jpg" alt="Good Kid Maad City by Kendrick Lamar">
+                </div>
+                <h3 class="title">Praise the lord</p>
+                <p class="author">A$AP Rocky ft. Skepta</p>
+                <audio src="./audio/praise-the-lord.mp3"></audio>
+              </div>
+              <div data-verse="0.13" class="track">
+                <div class="cover">
+                  <img src="./covers/mauvais-ordre.jpeg" alt="Mauvais ordre by Lomepal">
+                </div>
+                <h3 class="title">50°</p>
+                <p class="author">Lomepal</p>
+                <audio src="./audio/lomepal-50-degres.mp3"></audio>
+              </div>
+              <div data-verse="0.32" class="track">
                 <div class="cover">
                   <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
                 </div>
-                <p class="title">Los Pollos Hermanos</p>
+                <h3 class="title">Los Pollos Hermanos</p>
                 <p class="author">Knucks</p>
                 <audio src="./audio/los-pollos-hermanos.mp3"></audio>
               </div>
             </nav>
-            <div class="cta start">Generate the landscape</div>
+            <div class="cta start">Start</div>
           </div>
         </section>
       </main>
     </div>
+    <audio id="neon-sound" src="./audio/neo.mp3"></audio>
     <script type="module" src="/main.js"></script>
   </body>
 </html>

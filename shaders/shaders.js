@@ -133,4 +133,20 @@ const fragmentShader2 = () => {
   `;
 };
 
-export { vertexShader, vertexShader2, fragmentShader, fragmentShader2 };
+const particleVertexShader = () => {
+  return /* glsl */`
+      void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 0.);
+      }
+    `;
+};
+
+const particleFragmentShader = () => {
+  return /* glsl */`
+    void main() {
+      gl_FragColor = vec4(1., 1., 1., 1.);
+    }
+  `;
+};
+
+export { vertexShader, vertexShader2, fragmentShader, fragmentShader2, particleVertexShader, particleFragmentShader };

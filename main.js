@@ -5,7 +5,7 @@ import * as dat from 'dat.gui';
 import './reset.css';
 import './style.scss';
 
-import { vertexShader, vertexShader2, fragmentShader, fragmentShader2 } from "./shaders/shaders";
+import { vertexShader, vertexShader2, fragmentShader, fragmentShader2, particleVertexShader, particleFragmentShader } from "./shaders/shaders";
 
 const SIZE = {
   width: window.innerWidth,
@@ -14,6 +14,8 @@ const SIZE = {
 
 // Objects to init
 let gui = null;
+
+let verseStart = 0.13;
 
 let cvs = null;
 let scene = null;
@@ -32,7 +34,7 @@ const cubeTextureLoader = new THREE.CubeTextureLoader();
 // Check the url to enter debug mode
 let debug = window.location.hash && window.location.hash === '#debug';
 
-if(!debug) {
+if(debug) {
   // Debug
   gui = new dat.GUI();
 }
@@ -47,6 +49,7 @@ window.addEventListener('resize', () => {
 
   cvs.style.width = SIZE.width;
   cvs.style.height = SIZE.height;
+  cvs.style.backgroundColor = 'red';
 
   camera.aspect = SIZE.width / SIZE.height;
   camera.updateProjectionMatrix();
@@ -66,7 +69,6 @@ const setupCanvas = () => {
 
   cvs.style.width = SIZE.width;
   cvs.style.height = SIZE.height;
-  cvs.style.backgroundColor = 'red';
   
 }
 
@@ -77,7 +79,7 @@ const setupScene = () => {
   camera = new THREE.PerspectiveCamera(100, SIZE.width / SIZE.height, 0.1, 100);
 
   camera.position.x = 0;
-  camera.position.z = 50;
+  camera.position.z = 100;
 
   scene.add(camera);
 
@@ -116,33 +118,33 @@ const setupAudioContext = () => {
 
 }
 
-function randomIntFromInterval(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
+const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
 const setupParticles = () => {
 
-  for(let i=0; i<100; i++) {
-    const particleGeometry = new THREE.BoxGeometry(1, 1);
-    const particleMaterial = new THREE.ShaderMaterial({
-      wireframe: true
+  for(let i=0; i<2000; i++) {
+
+    const particleGeometry = new THREE.BoxGeometry(.1, .1, .1);
+
+    const particleMaterial = new THREE.MeshLambertMaterial({
+      color: 0xffffff
     });
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
-    particleMesh.position.x = randomIntFromInterval(-50, 50);
-    particleMesh.position.y = randomIntFromInterval(-50, 50);
-    particleMesh.position.z = randomIntFromInterval(-30, 30);
-    scene.add(particleMesh);
+    particleMesh.position.x = randomIntFromInterval(-100, 100);
+    particleMesh.position.y = randomIntFromInterval(-100, 100);
+    particleMesh.position.z = randomIntFromInterval(-100, 100);
+
+    setTimeout(() => {
+      scene.add(particleMesh);
+    }, randomIntFromInterval(0, 1000));
+
   }
 
 }
 
-let planeMesh1 = null;
-let planeMesh2 = null;
-let planeMesh3 = null;
-let planeMesh4 = null;
-let planeMesh5 = null;
+let planeMeshIntro = null;
 
-const setupPlanes = () => {
+const setupPlaneIntro = () => {
 
   const planeGeometry1 = new THREE.PlaneGeometry(50, 50, 150, 150);
   const planeCustomMaterial1 = new THREE.ShaderMaterial({
@@ -151,65 +153,30 @@ const setupPlanes = () => {
     fragmentShader: fragmentShader(),
     //wireframe: true
   });
-  planeMesh1 = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
-  scene.add(planeMesh1);
+  planeMeshIntro = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
+  scene.add(planeMeshIntro);
 
-  const planeGeometry2 = new THREE.PlaneGeometry(50, 50, 150, 150);
-  const planeCustomMaterial2 = new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: vertexShader2(),
-    fragmentShader: fragmentShader2(),
-  });
-  planeMesh2 = new THREE.Mesh(planeGeometry2, planeCustomMaterial2);
-  scene.add(planeMesh2);
-  planeMesh2.position.x = -50;
-  planeMesh2.position.z = -50;
+}
 
-  const planeGeometry3 = new THREE.PlaneGeometry(50, 50, 150, 150);
-  const planeCustomMaterial3 = new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: vertexShader2(),
-    fragmentShader: fragmentShader2(),
-  });
-  planeMesh3 = new THREE.Mesh(planeGeometry3, planeCustomMaterial3);
-  scene.add(planeMesh3);
-  planeMesh3.position.x = 50;
-  planeMesh3.position.z = -50;
+const setupPlanesVerse = () => {
 
-  const planeGeometry4 = new THREE.PlaneGeometry(50, 50, 150, 150);
-  const planeCustomMaterial4 = new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: vertexShader2(),
-    fragmentShader: fragmentShader2(),
-  });
-  planeMesh4 = new THREE.Mesh(planeGeometry4, planeCustomMaterial4);
-  scene.add(planeMesh4);
-  planeMesh4.position.y = 50;
-  planeMesh4.position.z = -50;
+  const xs = [60, -60, 0, 0];
+  const ys = [0, 0, 60, -60];
 
-  const planeGeometry5 = new THREE.PlaneGeometry(50, 50, 150, 150);
-  const planeCustomMaterial5 = new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: vertexShader2(),
-    fragmentShader: fragmentShader2(),
-  });
-  planeMesh5 = new THREE.Mesh(planeGeometry5, planeCustomMaterial5);
-  scene.add(planeMesh5);
-  planeMesh5.position.y = -50;
-  planeMesh5.position.z = -50;
-
-  if(gui != null) {
-
-    const audioWaveGui = gui.addFolder("audio waveform");
-    audioWaveGui
-      .add(planeCustomMaterial1, "wireframe")
-      .name("wireframe")
-      .listen();
-    audioWaveGui
-      .add(uniforms.u_amplitude, "value", 1.0, 8.0)
-      .name("amplitude")
-      .listen();
-      
+  for(let x=0; x<20; x++) {
+    for(let y=0; y<=4; y++) {
+      const planeGeometry = new THREE.PlaneGeometry(75, 75, 150, 150);
+      const planeCustomMaterial = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: vertexShader2(),
+        fragmentShader: fragmentShader2()
+      });
+      const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
+      scene.add(planeMesh);
+      planeMesh.position.x = xs[y];
+      planeMesh.position.y = ys[y];
+      planeMesh.position.z = -40*x;
+    }
   }
 
 }
@@ -217,7 +184,12 @@ const setupPlanes = () => {
 setupCanvas();
 setupScene();
 
+const neonSound = document.getElementById('neon-sound');
+neonSound.volume = .25;
+
 const play = () => {
+
+  neonSound.play();
 
   if (audioContext === null) setupAudioContext();
 
@@ -236,23 +208,30 @@ const play = () => {
     },
   };
   
-  setupPlanes();
   setupParticles();
+  setupPlaneIntro();
 
   const clock = new THREE.Clock();
+
+  let verse = false;
 
   const tick = () => {
 
     const time = clock.getElapsedTime() * .01;
     
-    if(!debug) {
-      camera.rotation.z -= 0.001;
-      camera.position.z -= 0.1;
-      //planeMesh1.position.z -= 0.1;
-      //planeMesh2.position.z += 0.1;
-      //planeMesh3.position.z += 0.1;
-      //planeMesh4.position.z += 0.1;
-      //planeMesh5.position.z += 0.1;
+    if(verse) {
+      //camera.rotation.z += 0.005;
+      camera.position.z -= 0.05;
+    } else {
+      camera.rotation.z = 0.8;
+      camera.position.z -= 0.02;
+    }
+    //planeMeshIntro.position.z -= 0.1;
+
+    if(time > verseStart && !verse) {
+      planeMeshIntro.removeFromParent();
+      setupPlanesVerse();
+      verse = true;
     }
 
     analyser.getByteFrequencyData(dataArray);
@@ -295,6 +274,8 @@ if(debug) {
   for(let track of document.querySelectorAll('.track')) {
     track.addEventListener('click', () => {
       reset('.track', 'active');
+      verseStart = Number(track.dataset.verse);
+      console.log(verseStart);
       audioElement = track.querySelector('audio');
       track.classList.add('active');
     });
