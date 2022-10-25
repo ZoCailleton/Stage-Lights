@@ -211,8 +211,13 @@ const setupPlaneIntro = () => {
     //vertexShader: vertexShader3(),
     fragmentShader: fragmentShader()
   });
-  if(SHADERS.fragment === 'rave') planeCustomMaterial1.fragmentShader = raveFrag();
-  else if(SHADERS.fragment === 'blue') planeCustomMaterial1.fragmentShader = blueFrag();
+
+  if(SHADERS.fragment === 'rave') {
+    planeCustomMaterial1.fragmentShader = raveFrag();
+  } else if(SHADERS.fragment === 'blue') {
+    planeCustomMaterial1.fragmentShader = blueFrag();
+  }
+
   planeMeshIntro = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
   scene.add(planeMeshIntro);
 
@@ -231,10 +236,18 @@ const setupPlanesVerse = () => {
       const planeCustomMaterial = new THREE.ShaderMaterial({
         uniforms,
         vertexShader: vertexShader2(),
-        fragmentShader: SHADERS.fragment == 'rave' ? raveFrag() : fragmentShader2()
+        fragmentShader: fragmentShader2()
       });
+
+      if(SHADERS.fragment === 'rave') {
+        planeCustomMaterial.fragmentShader = raveFrag();
+      } else if(SHADERS.fragment === 'blue') {
+        planeCustomMaterial.fragmentShader = blueFrag();
+      }
+
       const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
       scene.add(planeMesh);
+
       planeMesh.visible = false;
       planeMesh.position.x = xs[y];
       planeMesh.position.y = ys[y];
@@ -378,6 +391,15 @@ const setupTrackSlider = () => {
   });
   
   glide.mount();
+
+  /* const swiper = new Swiper('.swiper', {
+    loop: true,
+    slidesPerView: 5,
+    spaceBetween: 35,
+    keyboard: {
+      enabled: true
+    }
+  }); */
 
 }
 

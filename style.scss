@@ -182,12 +182,7 @@ section {
                 cursor: pointer;
                 transition: 100ms;
                 text-align: center;
-                &:hover {
-                    opacity: .5;
-                    .cover {
-                        transform: scale(.98);
-                    }
-                }
+                user-select: none;
                 &.active {
                     opacity: 1;
                 }
@@ -217,7 +212,7 @@ section {
             }
         }
         .cta {
-            margin-top: 3.5em;
+            margin-top: 2.5em;
         }
     }
 }
