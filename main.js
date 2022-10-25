@@ -8,6 +8,8 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 import Glide from '@glidejs/glide';
 
+import Swiper from 'swiper';
+
 import songs from './data/songs.json';
 
 /**
@@ -22,7 +24,19 @@ import songs from './data/songs.json';
 import './reset.css';
 import './style.scss';
 
-import { vertexShader, vertexShader2, fragmentShader, fragmentShader2, particleVertexShader, particleFragmentShader, raveFrag, blueFrag } from "./shaders/shaders";
+import {
+  vertexShader,
+  vertexShader2,
+  vertexShader3,
+  fragmentShader,
+  fragmentShader2,
+  fragmentShader3,
+  fragmentShader4,
+  particleVertexShader,
+  particleFragmentShader,
+  raveFrag,
+  blueFrag
+} from "./shaders/shaders";
 
 const SIZE = {
   width: window.innerWidth,
@@ -52,8 +66,6 @@ let SHADERS = {
   vertex: 'base',
   fragment: 'base'
 }
-
-const cubeTextureLoader = new THREE.CubeTextureLoader();
 
 // Check the url to enter debug mode
 let debug = window.location.hash && window.location.hash === '#debug';
@@ -103,6 +115,7 @@ const setupScene = () => {
 
   camera.position.x = 0;
   camera.position.z = 100;
+  camera.rotation.z = 0.8;
 
   scene.add(camera);
 
@@ -154,27 +167,34 @@ const setupAudioContext = () => {
 
 }
 
-const randomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+const getRandomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
-const setupParticles = () => {
+function getRandomFloat(min, max, decimals) {
+  const str = (Math.random() * (max - min) + min).toFixed(decimals);
+  return parseFloat(str);
+}
+
+const setupParticles = (_color='0xffffff') => {
+
+  console.log(_color);
 
   for(let i=0; i<2000; i++) {
 
-    const particleGeometry = new THREE.BoxGeometry(.1, .1, .1);
+    let particleSize = getRandomFloat(.1, .5, 1);
 
-    console.log(SHADERS.fragment);
+    const particleGeometry = new THREE.BoxGeometry(particleSize, particleSize, particleSize);
 
     const particleMaterial = new THREE.MeshLambertMaterial({
-      color: SHADERS.fragment === 'rave' ? 0xd61609 : 0xffffff
+      color: _color
     });
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
-    particleMesh.position.x = randomIntFromInterval(-100, 100);
-    particleMesh.position.y = randomIntFromInterval(-100, 100);
-    particleMesh.position.z = randomIntFromInterval(-100, 100);
+    particleMesh.position.x = getRandomIntFromInterval(-100, 100);
+    particleMesh.position.y = getRandomIntFromInterval(-100, 100);
+    particleMesh.position.z = getRandomIntFromInterval(-100, 100);
 
     setTimeout(() => {
       scene.add(particleMesh);
-    }, randomIntFromInterval(0, 1000));
+    }, getRandomIntFromInterval(0, 1000));
 
   }
 
@@ -188,9 +208,11 @@ const setupPlaneIntro = () => {
   const planeCustomMaterial1 = new THREE.ShaderMaterial({
     uniforms,
     vertexShader: vertexShader(),
-    fragmentShader: SHADERS.fragment == 'rave' ? raveFrag() : fragmentShader()
-    //fragmentShader: SHADERS.fragment == 'rave' ? raveFrag() : blueFrag()
+    //vertexShader: vertexShader3(),
+    fragmentShader: fragmentShader()
   });
+  if(SHADERS.fragment === 'rave') planeCustomMaterial1.fragmentShader = raveFrag();
+  else if(SHADERS.fragment === 'blue') planeCustomMaterial1.fragmentShader = blueFrag();
   planeMeshIntro = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
   scene.add(planeMeshIntro);
 
@@ -203,7 +225,7 @@ const setupPlanesVerse = () => {
   const xs = [60, -60, 0, 0];
   const ys = [0, 0, 60, -60];
 
-  for(let x=0; x<20; x++) {
+  for(let x=0; x<5; x++) {
     for(let y=0; y<=4; y++) {
       const planeGeometry = new THREE.PlaneGeometry(75, 75, 150, 150);
       const planeCustomMaterial = new THREE.ShaderMaterial({
@@ -213,12 +235,21 @@ const setupPlanesVerse = () => {
       });
       const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
       scene.add(planeMesh);
+      planeMesh.visible = false;
       planeMesh.position.x = xs[y];
       planeMesh.position.y = ys[y];
       planeMesh.position.z = -40*x;
 
       planesVerse.push(planeMesh);
     }
+  }
+
+}
+
+const showPlanesVerse = () => {
+
+  for(let plane of planesVerse) {
+    plane.visible = true;
   }
 
 }
@@ -250,8 +281,11 @@ const play = () => {
     },
   };
   
-  setupParticles();
   setupPlaneIntro();
+  setupPlanesVerse();
+  if(SHADERS.fragment === 'rave') setupParticles(0xd61609);
+  else if(SHADERS.fragment === 'blue') setupParticles(0x69d7ff);
+  else setupParticles();
 
   const clock = new THREE.Clock();
 
@@ -265,16 +299,13 @@ const play = () => {
       //camera.rotation.z += 0.005;
       camera.position.z -= 0.1;
     } else {
-      camera.rotation.z = 0.8;
       camera.position.z -= 0.01;
     }
-    //planeMeshIntro.position.z -= 0.1;
 
     if(time > verseStart && !verse) {
       planeMeshIntro.removeFromParent();
-      
-      setupPlanesVerse();
-
+      //setupPlanesVerse();
+      showPlanesVerse();
       verse = true;
     }
 
@@ -293,13 +324,7 @@ const play = () => {
 
 }
 
-const reset = (collection, className) => {
-    for(let elt of document.querySelectorAll(collection)) {
-      elt.classList.remove(className);
-    }
-}
-
-const createElement = (tag, className, value=null) => {
+const createHTMLElement = (tag, className, value=null) => {
   const elt = document.createElement(tag);
   elt.classList.add(className);
   if(value) {
@@ -307,6 +332,35 @@ const createElement = (tag, className, value=null) => {
     else elt.innerHTML = value;
   }
   return elt;
+}
+
+const setupIntroHeading = () => {
+
+  const opacities = ['neon1', 'neon2', 'neon3', 'neon4'];
+  
+  const heading = document.querySelector('.intro .heading');
+  const words = heading.textContent.split(' ');
+  heading.innerHTML = '';
+  for(let word of words) {
+    const wordElt = createHTMLElement('span', 'word');
+    for(let letter of word.split('')) {
+      const letterElt = createHTMLElement('span', 'letter', letter);
+      letterElt.classList.add(opacities[getRandomIntFromInterval(0, 3)]);
+      wordElt.append(letterElt);
+    }
+    heading.append(wordElt);
+  }
+
+  neonSound.play();
+
+}
+
+setupIntroHeading();
+
+const reset = (collection, className) => {
+    for(let elt of document.querySelectorAll(collection)) {
+      elt.classList.remove(className);
+    }
 }
 
 const setupTrackSlider = () => {
@@ -319,25 +373,24 @@ const setupTrackSlider = () => {
     gap: 50,
     rewind: true,
     focusAt: 'center',
-    peek: -100
+    peek: -100,
+    swipeThreshold: 200
   });
   
   glide.mount();
 
 }
 
-setupTrackSlider();
-
-const navElt = document.getElementById('track-list');
+const trackList = document.getElementById('track-list');
 
 const createTrackElement = (_data) => {
 
-  const trackElt = createElement('div', 'track');
-  trackElt.classList.add('splide__slide');
-  const coverElt = createElement('div', 'cover');
-  const imgElt = createElement('img', null, `./covers/${_data.cover}`);
-  const headingElt = createElement('h3', 'title', _data.title);
-  const authorElt = createElement('p', 'author', _data.author);
+  const trackElt = createHTMLElement('div', 'track');
+  trackElt.classList.add('glide__slide');
+  const coverElt = createHTMLElement('div', 'cover');
+  const imgElt = createHTMLElement('img', null, `./covers/${_data.cover}`);
+  const headingElt = createHTMLElement('h3', 'title', _data.title);
+  const authorElt = createHTMLElement('p', 'author', _data.author);
 
   coverElt.append(imgElt);
   trackElt.append(coverElt, headingElt, authorElt);
@@ -348,19 +401,20 @@ const createTrackElement = (_data) => {
 
 const loadTrackElts = () => {
 
-  const listTrackElt = createElement('div', 'splide__track');
-  const listElt = createElement('div', 'splide__list');
+  const listTrackElt = createHTMLElement('div', 'glide__track');
+  const listElt = createHTMLElement('div', 'glide__slides');
 
   for(let song of songs) {
     listElt.append(createTrackElement(song));
   }
 
   listTrackElt.append(listElt);
-  navElt.append(listTrackElt);
+  trackList.append(listTrackElt);
 
 }
 
 //loadTrackElts();
+setupTrackSlider();
 
 const intro_cta = document.querySelector('.intro .cta');
 const menu_cta = document.querySelector('.menu .cta.start');

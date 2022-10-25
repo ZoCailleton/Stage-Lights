@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="node_modules/@glidejs/glide/dist/css/glide.core.min.css">
+    <link rel="stylesheet" href="node_modules/@splidejs/splide/dist/css/splide.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css"/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit&display=swap" rel="stylesheet">
@@ -11,16 +13,15 @@
   </head>
   <body>
     <div class="app">
-      <main class="">
+      <main class="launched">
         <section class="intro">
           <div class="inner">
             <h1 class="heading">Space Visualizer</h1>
-            <div class="cta">Start the experience</div>
+            <div class="cta">Generate the visualizer</div>
           </div>
         </section>
         <section class="menu">
 
-          <p>Before starting</p>
           <h2 class="heading">Choose the song to play</h2>
 
           <div id="track-list" class="tracks">
@@ -28,7 +29,7 @@
             <div class="glide__track" data-glide-el="track">
               <div class="glide__slides">
 
-                <div data-verse="0.1" class="glide__slide track active">
+                <div data-verse="0.00" class="glide__slide track active">
                   <div class="cover">
                     <img src="./covers/2014-forest-drive-hill.png" alt="2014 Forest Drive Hill by J. Cole">
                   </div>
@@ -84,7 +85,7 @@
                   <p class="author">A$AP Rocky ft. Skepta</p>
                   <audio src="./audio/praise-the-lord.mp3"></audio>
                 </div>
-                <div data-verse="0.02" class="glide__slide track">
+                <div data-verse="0.13" class="glide__slide track">
                   <div class="cover">
                     <img src="./covers/mauvais-ordre.jpeg" alt="Mauvais ordre by Lomepal">
                   </div>
@@ -163,6 +164,30 @@
                   <h3 class="title">No Idea (Slowed & Reverb)</p>
                   <p class="author">Don Toliver</p>
                   <audio src="./audio/no-idea.mp3"></audio>
+                </div>
+                <div data-verse="0.0" class="track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Virtual Insanity</p>
+                  <p class="author">Jamiroquai</p>
+                  <audio src="./audio/virtual-insanity.mp3"></audio>
+                </div>
+                <div data-verse="0.10" class="track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">I love you so</p>
+                  <p class="author">Casius</p>
+                  <audio src="./audio/i-love-you-so.mp3"></audio>
+                </div>
+                <div data-verse="0.175" data-shader="blue" class="track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Rien d'spécial</p>
+                  <p class="author">Népal</p>
+                  <audio src="./audio/rien-de-special.mp3"></audio>
                 </div>
 
               </div>
