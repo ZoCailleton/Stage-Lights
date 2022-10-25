@@ -3,101 +3,175 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="node_modules/@glidejs/glide/dist/css/glide.core.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit&display=swap" rel="stylesheet">
-    <title>The Audio Landscape - A Three JS Experience</title>
+    <title>The Space Visualizer - A Three JS Experience</title>
   </head>
   <body>
     <div class="app">
-      <main>
+      <main class="">
         <section class="intro">
           <div class="inner">
             <h1 class="heading">Space Visualizer</h1>
-            <p>A Three JS Experiment</p>
             <div class="cta">Start the experience</div>
           </div>
         </section>
         <section class="menu">
-          <div class="inner">
-            <p>Step 1</p>
-            <h2 class="heading">Choose the song to play</h2>
-            <nav>
-              <div class="track active">
-                <div class="cover">
-                  <img src="./covers/2014-forest-drive-hill.png" alt="2014 Forest Drive Hill by J. Cole">
+
+          <p>Before starting</p>
+          <h2 class="heading">Choose the song to play</h2>
+
+          <div id="track-list" class="tracks">
+            
+            <div class="glide__track" data-glide-el="track">
+              <div class="glide__slides">
+
+                <div data-verse="0.1" class="glide__slide track active">
+                  <div class="cover">
+                    <img src="./covers/2014-forest-drive-hill.png" alt="2014 Forest Drive Hill by J. Cole">
+                  </div>
+                  <h3 class="title">No Role Modelz</p>
+                  <p class="author">J. Cole</p>
+                  <audio src="./audio/no-role-modelz.mp3"></audio>
                 </div>
-                <h3 class="title">No Role Modelz</p>
-                <p class="author">J. Cole</p>
-                <audio src="./audio/no-role-modelz.mp3"></audio>
-              </div>
-              <div data-verse="0.12" class="track">
-                <div class="cover">
-                  <img src="./covers/die-for-my-bitch.png" alt="Die for my bitch by Baby Keem">
+                <div data-verse="0.12" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/die-for-my-bitch.png" alt="Die for my bitch by Baby Keem">
+                  </div>
+                  <h3 class="title">Honest</p>
+                  <p class="author">Baby Keem</p>
+                  <audio src="./audio/honest.mp3"></audio>
                 </div>
-                <h3 class="title">Honest</p>
-                <p class="author">Baby Keem</p>
-                <audio src="./audio/honest.mp3"></audio>
-              </div>
-              <div data-verse="0.16" class="track">
-                <div class="cover">
-                  <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                <div data-verse="0.16" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                  </div>
+                  <h3 class="title">Bitch don't kill my vibe</p>
+                  <p class="author">Kendrick Lamar</p>
+                  <audio src="./audio/bitch-dont-kill-my-vibe.mp3"></audio>
                 </div>
-                <h3 class="title">Bitch don't kill my vibe</p>
-                <p class="author">Kendrick Lamar</p>
-                <audio src="./audio/bitch-dont-kill-my-vibe.mp3"></audio>
-              </div>
-              <div data-verse=".15" class="track">
-                <div class="cover">
-                  <img src="./covers/papoose.jpg" alt="Good Kid Maad City by Kendrick Lamar">
+                <div data-verse=".15" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/papoose.jpg" alt="Good Kid Maad City by Kendrick Lamar">
+                  </div>
+                  <h3 class="title">Papoose</p>
+                  <p class="author">Vald</p>
+                  <audio src="./audio/vald-papoose.mp3"></audio>
                 </div>
-                <h3 class="title">Papoose</p>
-                <p class="author">Vald</p>
-                <audio src="./audio/vald-papoose.mp3"></audio>
-              </div>
-              <div data-verse="0.02" class="track">
-                <div class="cover">
-                  <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                <div data-verse="0.02" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                  </div>
+                  <h3 class="title">Winter</p>
+                  <p class="author">Vivaldi</p>
+                  <audio src="./audio/vivaldi-winter.mp3"></audio>
                 </div>
-                <h3 class="title">Winter</p>
-                <p class="author">Vivaldi</p>
-                <audio src="./audio/vivaldi-winter.mp3"></audio>
-              </div>
-              <div data-verse="0.265" class="track hidden">
-                <div class="cover">
-                  <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                <div data-verse="0.265" class="glide__slide track hidden">
+                  <div class="cover">
+                    <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
+                  </div>
+                  <h3 class="title">Drill</p>
+                  <p class="author">Vivaldi</p>
+                  <audio src="./audio/vivaldi-drill.mp3"></audio>
                 </div>
-                <h3 class="title">Drill</p>
-                <p class="author">Vivaldi</p>
-                <audio src="./audio/vivaldi-drill.mp3"></audio>
-              </div>
-              <div data-verse="0.12" class="track">
-                <div class="cover">
-                  <img src="./covers/praise-the-lord.jpg" alt="Good Kid Maad City by Kendrick Lamar">
+                <div data-verse="0.12" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/praise-the-lord.jpg" alt="Good Kid Maad City by Kendrick Lamar">
+                  </div>
+                  <h3 class="title">Praise the lord</p>
+                  <p class="author">A$AP Rocky ft. Skepta</p>
+                  <audio src="./audio/praise-the-lord.mp3"></audio>
                 </div>
-                <h3 class="title">Praise the lord</p>
-                <p class="author">A$AP Rocky ft. Skepta</p>
-                <audio src="./audio/praise-the-lord.mp3"></audio>
-              </div>
-              <div data-verse="0.13" class="track">
-                <div class="cover">
-                  <img src="./covers/mauvais-ordre.jpeg" alt="Mauvais ordre by Lomepal">
+                <div data-verse="0.02" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/mauvais-ordre.jpeg" alt="Mauvais ordre by Lomepal">
+                  </div>
+                  <h3 class="title">50°</p>
+                  <p class="author">Lomepal</p>
+                  <audio src="./audio/lomepal-50-degres.mp3"></audio>
                 </div>
-                <h3 class="title">50°</p>
-                <p class="author">Lomepal</p>
-                <audio src="./audio/lomepal-50-degres.mp3"></audio>
-              </div>
-              <div data-verse="0.32" class="track">
-                <div class="cover">
-                  <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                <div data-verse="0.32" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Los Pollos Hermanos</p>
+                  <p class="author">Knucks</p>
+                  <audio src="./audio/los-pollos-hermanos.mp3"></audio>
                 </div>
-                <h3 class="title">Los Pollos Hermanos</p>
-                <p class="author">Knucks</p>
-                <audio src="./audio/los-pollos-hermanos.mp3"></audio>
+                <div data-verse="0.05" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/melo.jpg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Si j'savais</p>
+                  <p class="author">Tiakola</p>
+                  <audio src="./audio/si-jsavais.mp3"></audio>
+                </div>
+                <div data-verse="0.32" class="glide__slide track hidden">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Autotune (Slowed & Reverb)</p>
+                  <p class="author">Damso</p>
+                  <audio src="./audio/autotune.mp3"></audio>
+                </div>
+                <div data-verse="0.175" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Verre d'eau</p>
+                  <p class="author">pxzvc</p>
+                  <audio src="./audio/verre-d-eau.mp3"></audio>
+                </div>
+                <div data-verse="0.32" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Signaler (Slowed & Reverb)</p>
+                  <p class="author">Damso</p>
+                  <audio src="./audio/signaler.mp3"></audio>
+                </div>
+                <div data-verse="0.0" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Roses</p>
+                  <p class="author">Imenbek</p>
+                  <audio src="./audio/roses.mp3"></audio>
+                </div>
+                <div data-verse="0.16" data-shader="rave" class="glide__slide track">
+                  <div class="cover">
+                    <img src="./covers/rave.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Rave</p>
+                  <p class="author">Dxrk ダーク</p>
+                  <audio src="./audio/rave.mp3"></audio>
+                </div>
+                <div data-verse="0.0" class="track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">Skyfall (Slowed & Reverb)</p>
+                  <p class="author">Adèle</p>
+                  <audio src="./audio/skyfall.mp3"></audio>
+                </div>
+                <div data-verse="0.0" class="track">
+                  <div class="cover">
+                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                  </div>
+                  <h3 class="title">No Idea (Slowed & Reverb)</p>
+                  <p class="author">Don Toliver</p>
+                  <audio src="./audio/no-idea.mp3"></audio>
+                </div>
+
               </div>
-            </nav>
-            <div class="cta start">Start</div>
+            </div>
+
           </div>
+          
+          <div class="cta start">Start</div>
+
         </section>
       </main>
     </div>

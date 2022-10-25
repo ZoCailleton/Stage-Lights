@@ -133,6 +133,46 @@ const fragmentShader2 = () => {
   `;
 };
 
+const raveFrag = () => {
+  return /* glsl */`
+
+    varying float x;
+    varying float y;
+    varying float z;
+    varying vec3 vUv;
+    
+    uniform float u_time;
+
+    void main() {
+      if(z > 2.9) {
+        gl_FragColor = vec4(abs(y + z), (32.0 - abs(y)) / 64.0, 0., 1.0);
+      } else {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      }
+    }
+  `;
+};
+
+const blueFrag = () => {
+  return /* glsl */`
+
+    varying float x;
+    varying float y;
+    varying float z;
+    varying vec3 vUv;
+    
+    uniform float u_time;
+
+    void main() {
+      if(z > 2.9) {
+        gl_FragColor = vec4(abs(z / y) / 32., (32.0 - abs(y)) / 64.0, abs(y + z), 1.0);
+      } else {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      }
+    }
+  `;
+};
+
 const particleVertexShader = () => {
   return /* glsl */`
       void main() {
@@ -149,4 +189,4 @@ const particleFragmentShader = () => {
   `;
 };
 
-export { vertexShader, vertexShader2, fragmentShader, fragmentShader2, particleVertexShader, particleFragmentShader };
+export { vertexShader, vertexShader2, fragmentShader, fragmentShader2, particleVertexShader, particleFragmentShader, raveFrag, blueFrag };

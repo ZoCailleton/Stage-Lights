@@ -1,0 +1,115 @@
+[
+    {
+        "title": "Papoose",
+        "author": "Vald",
+        "verse": 0.12,
+        "src": "vald-papoose.mp3",
+        "cover": "papoose.jpg"
+    },
+    {
+        "title": "Winter",
+        "author": "Antonio Vivaldi",
+        "verse": 0.0,
+        "src": "winter.mp3",
+        "cover": "winter"
+    },
+    {
+        "title": "Roses",
+        "author": "Imenbek",
+        "verse": 0.0,
+        "src": "rose.mp3"
+    },
+    {
+        "title": "Los Pollos Hermanos",
+        "author": "Knucks",
+        "verse": 0.32,
+        "src": "los-pollos-hermanos.mp3",
+        "cover": "los-pollos-hermanos.jpg"
+    },
+    {
+        "title": "Rave",
+        "author": "Dxrk ダーク",
+        "src": "rave.mp3",
+        "cover": "rave.jpg",
+        "verse": 0.16
+    },
+    {
+        "title": "Skyfall (Slowed & Reverb)",
+        "author": "Adèle",
+        "verse": 0.0,
+        "src": "skyfall.mp3",
+        "cover": "skyfall.jpg"
+    },
+    {
+        "title": "No Idea (Slowed & Reverb)",
+        "author": "Don Toliver",
+        "verse": 0.0,
+        "src": "no-idea.mp3",
+        "cover": "no-idea"
+    },
+    {
+        "title": "No Role Modelz",
+        "author": "J. Cole",
+        "verse": 0.0,
+        "src": "no-role-modelz.mp3",
+        "cover": "2014-forest-drive-hill.png"
+    },
+    {
+        "title": "Honest",
+        "author": "Baby Keem",
+        "verse": 0.12,
+        "src": "honest.mp3",
+        "cover": "die-for-my-bitch.png"
+    },
+    {
+        "title": "Bitch don't kill my vibe",
+        "author": "Kendrick Lamar",
+        "verse": 0.16,
+        "src": "bitch-dont-kill-my-vibe",
+        "cover": "good-kid-maad-city.jpg"
+    },
+    {
+        "title": "Winter (Drill Remix)",
+        "author": "Antonio Vivaldi",
+        "verse": 0.265,
+        "src": "vivaldi-drill.mp3"
+    },
+    {
+        "title": "Praise the lord",
+        "author": "A$AP Rocky ft. Skepta",
+        "verse": 0.12,
+        "src": "praise-the-lord.mp3"
+    },
+    {
+        "title": "50°",
+        "author": "Lomepal",
+        "verse": 0.02,
+        "src": "lomepal-50-degres"
+    },
+    {
+        "title": "Si j'savais",
+        "author": "Tiakola",
+        "verse": 0.05,
+        "src": "si-jsavais.mp3",
+        "cover": "melo.jpg"
+    },
+    {
+        "title": "Autotune (Slowed & Reverb)",
+        "author": "Damso",
+        "verse": 0.0,
+        "src": "autotune",
+        "cover": "autotune.jpg"
+    },
+    {
+        "title": "Verre d'eau",
+        "author": "pxzvc",
+        "src": "verre-d-eau.mp3",
+        "cover": "verre-d-deau.jpg"
+    },
+    {
+        "title": "Signaler (Slowed & Reverb)",
+        "author": "Damso",
+        "src": "signaler.mp3",
+        "cover": "signaler.jpg"
+    }
+]

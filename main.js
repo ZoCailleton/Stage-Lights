@@ -1,11 +1,28 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'dat.gui';
+import gsap from 'gsap';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+
+import Glide from '@glidejs/glide';
+
+import songs from './data/songs.json';
+
+/**
+ * TODO :
+ * - Générer les musiques en JSON
+ * - Particles sur l'intro
+ * - Intro screen
+ * - Génération infinie de plane
+ * - Variations Fragment Shader
+ */
 
 import './reset.css';
 import './style.scss';
 
-import { vertexShader, vertexShader2, fragmentShader, fragmentShader2, particleVertexShader, particleFragmentShader } from "./shaders/shaders";
+import { vertexShader, vertexShader2, fragmentShader, fragmentShader2, particleVertexShader, particleFragmentShader, raveFrag, blueFrag } from "./shaders/shaders";
 
 const SIZE = {
   width: window.innerWidth,
@@ -29,6 +46,13 @@ let dataArray = null;
 
 let uniforms = null;
 
+let composer = null;
+
+let SHADERS = {
+  vertex: 'base',
+  fragment: 'base'
+}
+
 const cubeTextureLoader = new THREE.CubeTextureLoader();
 
 // Check the url to enter debug mode
@@ -49,7 +73,6 @@ window.addEventListener('resize', () => {
 
   cvs.style.width = SIZE.width;
   cvs.style.height = SIZE.height;
-  cvs.style.backgroundColor = 'red';
 
   camera.aspect = SIZE.width / SIZE.height;
   camera.updateProjectionMatrix();
@@ -91,6 +114,19 @@ const setupScene = () => {
   renderer.setSize(SIZE.width, SIZE.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+  const renderScene = new RenderPass(scene, camera);
+  composer = new EffectComposer(renderer);
+  composer.addPass(renderScene);
+
+  // Bloom
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    1.6,
+    .5,
+    .1
+  );
+  composer.addPass(bloomPass);
+
   //new OrbitControls( camera, renderer.domElement )
 
   let ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
@@ -126,8 +162,10 @@ const setupParticles = () => {
 
     const particleGeometry = new THREE.BoxGeometry(.1, .1, .1);
 
+    console.log(SHADERS.fragment);
+
     const particleMaterial = new THREE.MeshLambertMaterial({
-      color: 0xffffff
+      color: SHADERS.fragment === 'rave' ? 0xd61609 : 0xffffff
     });
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
     particleMesh.position.x = randomIntFromInterval(-100, 100);
@@ -150,13 +188,15 @@ const setupPlaneIntro = () => {
   const planeCustomMaterial1 = new THREE.ShaderMaterial({
     uniforms,
     vertexShader: vertexShader(),
-    fragmentShader: fragmentShader(),
-    //wireframe: true
+    fragmentShader: SHADERS.fragment == 'rave' ? raveFrag() : fragmentShader()
+    //fragmentShader: SHADERS.fragment == 'rave' ? raveFrag() : blueFrag()
   });
   planeMeshIntro = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
   scene.add(planeMeshIntro);
 
 }
+
+let planesVerse = [];
 
 const setupPlanesVerse = () => {
 
@@ -169,13 +209,15 @@ const setupPlanesVerse = () => {
       const planeCustomMaterial = new THREE.ShaderMaterial({
         uniforms,
         vertexShader: vertexShader2(),
-        fragmentShader: fragmentShader2()
+        fragmentShader: SHADERS.fragment == 'rave' ? raveFrag() : fragmentShader2()
       });
       const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
       scene.add(planeMesh);
       planeMesh.position.x = xs[y];
       planeMesh.position.y = ys[y];
       planeMesh.position.z = -40*x;
+
+      planesVerse.push(planeMesh);
     }
   }
 
@@ -221,16 +263,18 @@ const play = () => {
     
     if(verse) {
       //camera.rotation.z += 0.005;
-      camera.position.z -= 0.05;
+      camera.position.z -= 0.1;
     } else {
       camera.rotation.z = 0.8;
-      camera.position.z -= 0.02;
+      camera.position.z -= 0.01;
     }
     //planeMeshIntro.position.z -= 0.1;
 
     if(time > verseStart && !verse) {
       planeMeshIntro.removeFromParent();
+      
       setupPlanesVerse();
+
       verse = true;
     }
 
@@ -239,7 +283,7 @@ const play = () => {
     uniforms.u_time.value = time;
     uniforms.u_data_arr.value = dataArray;
 
-    renderer.render(scene, camera);
+    composer.render(scene, camera);
 
     requestAnimationFrame(tick);
 
@@ -254,6 +298,69 @@ const reset = (collection, className) => {
       elt.classList.remove(className);
     }
 }
+
+const createElement = (tag, className, value=null) => {
+  const elt = document.createElement(tag);
+  elt.classList.add(className);
+  if(value) {
+    if(tag === 'img') elt.src = value;
+    else elt.innerHTML = value;
+  }
+  return elt;
+}
+
+const setupTrackSlider = () => {
+
+  const glide = new Glide('#track-list', {
+    type: 'carousel',
+    start: 5,
+    focusAt: 'center',
+    perView: 6,
+    gap: 50,
+    rewind: true,
+    focusAt: 'center',
+    peek: -100
+  });
+  
+  glide.mount();
+
+}
+
+setupTrackSlider();
+
+const navElt = document.getElementById('track-list');
+
+const createTrackElement = (_data) => {
+
+  const trackElt = createElement('div', 'track');
+  trackElt.classList.add('splide__slide');
+  const coverElt = createElement('div', 'cover');
+  const imgElt = createElement('img', null, `./covers/${_data.cover}`);
+  const headingElt = createElement('h3', 'title', _data.title);
+  const authorElt = createElement('p', 'author', _data.author);
+
+  coverElt.append(imgElt);
+  trackElt.append(coverElt, headingElt, authorElt);
+
+  return trackElt;
+  
+}
+
+const loadTrackElts = () => {
+
+  const listTrackElt = createElement('div', 'splide__track');
+  const listElt = createElement('div', 'splide__list');
+
+  for(let song of songs) {
+    listElt.append(createTrackElement(song));
+  }
+
+  listTrackElt.append(listElt);
+  navElt.append(listTrackElt);
+
+}
+
+//loadTrackElts();
 
 const intro_cta = document.querySelector('.intro .cta');
 const menu_cta = document.querySelector('.menu .cta.start');
@@ -272,12 +379,18 @@ if(debug) {
   });
 
   for(let track of document.querySelectorAll('.track')) {
+
     track.addEventListener('click', () => {
+
       reset('.track', 'active');
       verseStart = Number(track.dataset.verse);
-      console.log(verseStart);
       audioElement = track.querySelector('audio');
       track.classList.add('active');
+
+      if(track.dataset.shader != undefined) {
+        SHADERS.fragment = track.dataset.shader;
+      }
+
     });
   }
 
