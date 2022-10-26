@@ -229,6 +229,9 @@ section {
                     opacity: 1;
                     .cover {
                         border: 4px solid rgb(93, 177, 255);
+                        @media screen and (max-width: 500px) {
+                            border: 0;
+                        }
                     }
                     .title,
                     .author {
@@ -271,7 +274,14 @@ section {
             margin-top: 2.5em;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 2em;
+            img {
+                height: 3em;
+                cursor: pointer;
+                &:hover {
+                    filter: invert(100%);
+                }
+            }
             .cta {
                 padding: 0 35px;
                 display: flex;

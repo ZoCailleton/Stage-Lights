@@ -450,9 +450,10 @@ const setupTrackSlider = () => {
     if(e.key === 'ArrowRight') splide.go('+1');
   });
 
-  for(let track of document.querySelectorAll('.splide__slide')) {
+  for(let track of document.querySelectorAll('.splide__slide:not(.is-active)')) {
+    let id = Number(track.ariaLabel.split(' of ')[0]) - 1;
     track.addEventListener('click', () => {
-      splide.go('+1');
+      splide.go(id);
     });
   }
 
