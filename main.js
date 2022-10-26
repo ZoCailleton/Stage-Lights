@@ -62,6 +62,9 @@ window.addEventListener('mousemove', e => {
   MOUSE.y = e.clientY / window.innerHeight - .5;
 });
 
+let SCENE = 'intro';
+let PAUSE = false;
+
 // Objects to init
 let gui = null;
 
@@ -105,11 +108,23 @@ window.addEventListener('resize', () => {
   cvs.style.width = SIZE.width;
   cvs.style.height = SIZE.height;
 
-  camera.aspect = SIZE.width / SIZE.height;
-  camera.updateProjectionMatrix();
+  if(SCENE === 'intro') {
 
-  renderer.setSize(SIZE.width, SIZE.height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    cameraIntro.aspect = SIZE.width / SIZE.height;
+    cameraIntro.updateProjectionMatrix();
+
+    rendererIntro.setSize(SIZE.width, SIZE.height);
+    rendererIntro.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+  } else if(SCENE === 'stage') {
+
+    camera.aspect = SIZE.width / SIZE.height;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(SIZE.width, SIZE.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  }
 
 });
 
@@ -125,6 +140,8 @@ const setupCanvas = () => {
   cvs.style.height = SIZE.height;
   
 }
+
+let bloomPass;
 
 const setupScene = () => {
 
@@ -151,7 +168,7 @@ const setupScene = () => {
   composer.addPass(renderScene);
 
   // Bloom
-  const bloomPass = new UnrealBloomPass(
+  bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
     1.6,
     .5,
@@ -193,11 +210,13 @@ function getRandomFloat(min, max, decimals) {
   return parseFloat(str);
 }
 
+const particles = [];
+
 const setupParticles = (_color='0xffffff') => {
 
-  for(let i=0; i<2000; i++) {
+  for(let i=0; i<1000; i++) {
 
-    let particleSize = getRandomFloat(.1, .5, 1);
+    let particleSize = getRandomFloat(.1, .2, 1);
 
     const particleGeometry = new THREE.BoxGeometry(particleSize, particleSize, particleSize);
 
@@ -207,7 +226,9 @@ const setupParticles = (_color='0xffffff') => {
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
     particleMesh.position.x = getRandomIntFromInterval(-100, 100);
     particleMesh.position.y = getRandomIntFromInterval(-100, 100);
-    particleMesh.position.z = getRandomIntFromInterval(-100, 100);
+    particleMesh.position.z = getRandomIntFromInterval(-10, 50);
+
+    particles.push(particleMesh);
 
     setTimeout(() => {
       scene.add(particleMesh);
@@ -247,7 +268,7 @@ const setupPlanesVerse = () => {
   const xs = [60, -60, 0, 0];
   const ys = [0, 0, 60, -60];
 
-  for(let x=0; x<5; x++) {
+  for(let x=0; x<3; x++) {
     for(let y=0; y<=4; y++) {
       const planeGeometry = new THREE.PlaneGeometry(75, 75, 150, 150);
       const planeCustomMaterial = new THREE.ShaderMaterial({
@@ -260,6 +281,10 @@ const setupPlanesVerse = () => {
         planeCustomMaterial.fragmentShader = raveFrag();
       } else if(SHADERS.fragment === 'blue') {
         planeCustomMaterial.fragmentShader = blueFrag();
+      } else if(SHADERS.fragment === 'violet') {
+        planeCustomMaterial.fragmentShader = fragmentShader3();
+      } else if(SHADERS.fragment === 'green') {
+        planeCustomMaterial.fragmentShader = fragmentShader4();
       }
 
       const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
@@ -290,9 +315,14 @@ const neonSound = document.getElementById('neon-sound');
 neonSound.volume = .25;
 
 const play = () => {
+  
+  SCENE = 'stage';
 
   neonSound.play();
   audioElement.play();
+
+  navTopElt.classList.remove('active');
+  overlayElt.classList.remove('active');
 
   if (audioContext === null) setupAudioContext();
 
@@ -311,48 +341,12 @@ const play = () => {
     },
   };
   
-  removeSceneIntro();
   setupScene();
   setupPlaneIntro();
   setupPlanesVerse();
   if(SHADERS.fragment === 'rave') setupParticles(0xd61609);
   else if(SHADERS.fragment === 'blue') setupParticles(0x69d7ff);
   else setupParticles();
-
-  const clock = new THREE.Clock();
-
-  let verse = false;
-
-  const tick = () => {
-
-    const time = clock.getElapsedTime() * .01;
-    
-    if(verse) {
-      //camera.rotation.z += 0.005;
-      camera.position.z -= 0.1;
-    } else {
-      camera.position.z -= 0.01;
-    }
-
-    if(time > verseStart && !verse) {
-      planeMeshIntro.removeFromParent();
-      //setupPlanesVerse();
-      showPlanesVerse();
-      verse = true;
-    }
-
-    analyser.getByteFrequencyData(dataArray);
-
-    uniforms.u_time.value = time;
-    uniforms.u_data_arr.value = dataArray;
-
-    composer.render(scene, camera);
-
-    requestAnimationFrame(tick);
-
-  }
-
-  tick();
 
 }
 
@@ -478,9 +472,13 @@ for(let track of document.querySelectorAll('.track')) {
   track.addEventListener('click', () => {
 
     reset('.track', 'active');
+
     verseStart = Number(track.dataset.verse);
     audioElement = track.querySelector('audio');
+    console.log(audioElement);
     track.classList.add('active');
+
+    console.log(verseStart);
 
     if(track.dataset.shader != undefined) {
       SHADERS.fragment = track.dataset.shader;
@@ -489,8 +487,8 @@ for(let track of document.querySelectorAll('.track')) {
   });
 }
 
-menu_cta.addEventListener('click', async () => {
-  mainElement.style.display = 'none';
+menu_cta.addEventListener('click', () => {
+  mainElement.classList.remove('active');
   enterStage();
   setTimeout(play, 1000);
 });
@@ -604,13 +602,34 @@ const setupBloomIntro = () => {
 
 }
 
-function removeSceneIntro() {
-
-  console.log('remove');
-  
-  sceneIntro.removeFromParent();
-
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
 }
+
+const overlayElt = document.querySelector('.overlay');
+const navTopElt = document.querySelector('.navigation.top');
+const iconBack = document.querySelector('.navigation .icon.back');
+const iconPause = document.querySelector('.navigation .icon.pause');
+const iconFullscreen = document.querySelector('.navigation .icon.fullscreen');
+
+iconBack.addEventListener('click', () => {
+  mainElement.classList.add('active');
+  audioElement.pause();
+  SCENE = 'intro';
+  animateStage();
+});
+
+iconPause.addEventListener('click', () => {
+  PAUSE = !PAUSE;
+});
+
+iconFullscreen.addEventListener('click', () => {
+  toggleFullScreen();
+});
 
 const setupSceneIntro = () => {
   
@@ -620,41 +639,8 @@ const setupSceneIntro = () => {
   setupRendererIntro();
   setupLightsIntro();
   setupStageModel();
-  setupParticlesIntro();
+  //setupParticlesIntro();
   setupBloomIntro();
-
-  const clock = new THREE.Clock();
-
-  let xc = 0;
-  let yc = 0;
-
-  const tick = () => {
-
-    const time = clock.getElapsedTime() * .01;
-    
-    if(composerIntro != null) composerIntro.render(sceneIntro, cameraIntro);
-    else rendererIntro.render(sceneIntro, cameraIntro);
-
-    requestAnimationFrame(tick);
-
-    xc = lerp(xc, -MOUSE.y * .1, .05);
-    yc = lerp(yc, -MOUSE.x * .1, .05);
-
-    cameraIntro.rotation.x = xc;
-    cameraIntro.rotation.y = yc;
-
-    for(let particle of particlesIntro) {
-      if(particle.position.y > 2) {
-        particle.position.y = -1;
-      }
-      particle.position.y += getRandomFloat(.001, .005, 3);
-    }
-
-    headingIntroElt.style.transform = `rotate3d(${xc}, ${yc}, 0)`;
-
-  }
-
-  tick();
 
 }
 
@@ -665,7 +651,7 @@ function animateStage() {
 }
 
 function enterStage() {
-  gsap.to(cameraIntro.position, {z: 0, duration: 1, ease: Power2.easeInOut});
+  gsap.to(cameraIntro.position, {z: -5, duration: 1, ease: Power2.easeInOut});
 }
 
 function animateStageIntro() {
@@ -673,3 +659,92 @@ function animateStageIntro() {
 }
 
 //animateStageIntro();
+
+const clock = new THREE.Clock();
+
+let xc = 0;
+let yc = 0;
+
+let verse = false;
+
+const tick = () => {
+
+  // Lerp
+  xc = lerp(xc, -MOUSE.y * .1, .05);
+  yc = lerp(yc, -MOUSE.x * .1, .05);
+  
+  if(SCENE === 'intro') {
+
+    if(composerIntro != null) {
+      composerIntro.render(sceneIntro, cameraIntro);
+    } else {
+      rendererIntro.render(sceneIntro, cameraIntro);
+    }
+
+    cameraIntro.rotation.x = xc;
+    cameraIntro.rotation.y = yc;
+
+    for(let particle of particlesIntro) {
+      if(particle.position.y > 2) {
+        particle.position.y = -1;
+      }
+      particle.position.y += getRandomFloat(.001, .005, 3);
+    }
+  
+    headingIntroElt.style.transform = `rotate3d(${xc}, ${yc}, 0)`;
+
+  }
+  
+  if(SCENE === 'stage') {
+
+    const time = clock.getElapsedTime() * .01;
+  
+    //console.log(time);
+    
+    if(verse) {
+      //camera.rotation.z += 0.005;
+      //camera.position.z -= 0.1;
+    } else {
+      //camera.position.z -= 0.01;
+    }
+
+    if(!PAUSE) {
+
+      for(let plane of planesVerse) {
+        if(plane.position.z > 100) {
+          plane.position.z = -30;
+        } else {
+          plane.position.z += 0.1;
+        }
+      }
+
+      for(let particle of particles) {
+        if(particle.position.z > 100) {
+          particle.position.z = -50;
+        } else {
+          particle.position.z += 0.1;
+        }
+      }
+
+    }
+
+    if(time > verseStart && !verse) {
+      planeMeshIntro.removeFromParent();
+      showPlanesVerse();
+      verse = true;
+    }
+
+    analyser.getByteFrequencyData(dataArray);
+
+    uniforms.u_time.value = time;
+    uniforms.u_data_arr.value = dataArray;
+
+    composer.render(scene, camera);
+
+  }
+
+  requestAnimationFrame(tick);
+
+}
+
+tick();

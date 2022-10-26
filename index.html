@@ -13,7 +13,22 @@
   </head>
   <body>
     <div class="app">
-      <main>
+
+      <div class="overlay active"></div>
+
+      <nav class="navigation top">
+        <img class="icon back" src="./assets/icon-back.png" alt="Retour à l'accueil">
+        <img class="icon pause" src="./assets/icon-pause.png" alt="Mettre en pause la musique">
+      </nav>
+
+      <nav class="navigation bottom">
+        <a href="https://www.gobelins.fr/" target="_blank">
+          <img class="link" src="./assets/logo-gobelins.png" alt="Gobelins">
+        </a>
+        <img class="icon fullscreen" src="./assets/icon-fullscreen.png" alt="Mode plein-écran">
+      </nav>
+
+      <main class="active">
 
         <section class="intro">
 
@@ -26,8 +41,6 @@
               </div>
             </div>
           </div>
-
-          <a class="link" href="https://www.gobelins.fr/" target="_blank"><img src="./assets/logo-gobelins.png" alt="Gobelins"></a>
 
         </section>
 
@@ -112,7 +125,7 @@
                   <p class="author">Knucks</p>
                   <audio src="./audio/los-pollos-hermanos.mp3"></audio>
                 </div>
-                <div data-verse="0.01" class="glide__slide track">
+                <div data-verse="0.01" data-shader="green" class="glide__slide track">
                   <div class="cover">
                     <img src="./covers/melo.jpg" alt="Los Pollos Hermanos by Knucks">
                   </div>
@@ -144,9 +157,9 @@
                   <p class="author">Damso</p>
                   <audio src="./audio/signaler.mp3"></audio>
                 </div>
-                <div data-verse="0.0" class="glide__slide track">
+                <div data-verse="0.0" data-shader="violet" class="glide__slide track">
                   <div class="cover">
-                    <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
+                    <img src="./covers/roses.jpg" alt="Roses by Imenbek">
                   </div>
                   <h3 class="title">Roses</p>
                   <p class="author">Imenbek</p>
