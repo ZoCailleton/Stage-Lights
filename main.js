@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'dat.gui';
-import gsap from 'gsap';
+import gsap, {Power2} from 'gsap';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import Glide from '@glidejs/glide';
 
@@ -15,9 +16,11 @@ import songs from './data/songs.json';
 /**
  * TODO :
  * - Génération infinie de planes
+ * - Dat GUI
+ * - Loader
+ * - Particles Intro
  * - Mouse Lerp
  * - Carousel
- * - Test Scene Intro
  * - Particles sur l'intro
  * - Intro screen
  * - Générer les musiques en JSON
@@ -44,6 +47,20 @@ const SIZE = {
   width: window.innerWidth,
   height: window.innerHeight
 };
+
+const MOUSE = {
+  x: 0,
+  y: 0
+};
+
+const lerp = (start, end, t = 0.5) => {
+  return start * (1 - t) + end * t;
+}
+
+window.addEventListener('mousemove', e => {
+  MOUSE.x = e.clientX / window.innerWidth - .5;
+  MOUSE.y = e.clientY / window.innerHeight - .5;
+});
 
 // Objects to init
 let gui = null;
@@ -178,8 +195,6 @@ function getRandomFloat(min, max, decimals) {
 
 const setupParticles = (_color='0xffffff') => {
 
-  console.log(_color);
-
   for(let i=0; i<2000; i++) {
 
     let particleSize = getRandomFloat(.1, .5, 1);
@@ -270,7 +285,6 @@ const showPlanesVerse = () => {
 }
 
 setupCanvas();
-setupScene();
 
 const neonSound = document.getElementById('neon-sound');
 neonSound.volume = .25;
@@ -278,6 +292,7 @@ neonSound.volume = .25;
 const play = () => {
 
   neonSound.play();
+  audioElement.play();
 
   if (audioContext === null) setupAudioContext();
 
@@ -296,6 +311,8 @@ const play = () => {
     },
   };
   
+  removeSceneIntro();
+  setupScene();
   setupPlaneIntro();
   setupPlanesVerse();
   if(SHADERS.fragment === 'rave') setupParticles(0xd61609);
@@ -451,37 +468,208 @@ const menu_cta = document.querySelector('.menu .cta.start');
 
 const mainElement = document.querySelector('main');
 
-if(debug) {
-  
+intro_cta.addEventListener('click', () => {
+  animateStage();
+  mainElement.classList.add('launched');
+});
+
+for(let track of document.querySelectorAll('.track')) {
+
+  track.addEventListener('click', () => {
+
+    reset('.track', 'active');
+    verseStart = Number(track.dataset.verse);
+    audioElement = track.querySelector('audio');
+    track.classList.add('active');
+
+    if(track.dataset.shader != undefined) {
+      SHADERS.fragment = track.dataset.shader;
+    }
+
+  });
+}
+
+menu_cta.addEventListener('click', async () => {
   mainElement.style.display = 'none';
-  play();
+  enterStage();
+  setTimeout(play, 1000);
+});
 
-} else {
+// ========== SCENE INTRO ========== //
 
-  intro_cta.addEventListener('click', () => {
-    mainElement.classList.add('launched');
-  });
+let sceneIntro = null;
+let cameraIntro = null;
+let rendererIntro = null;
+let composerIntro = null;
 
-  for(let track of document.querySelectorAll('.track')) {
+const headingIntroElt = document.querySelector('.intro .heading');
 
-    track.addEventListener('click', () => {
+const setupCameraIntro = () => {
 
-      reset('.track', 'active');
-      verseStart = Number(track.dataset.verse);
-      audioElement = track.querySelector('audio');
-      track.classList.add('active');
+  cameraIntro = new THREE.PerspectiveCamera(60, SIZE.width / SIZE.height, 0.1, 100);
+  cameraIntro.position.y = 1;
+  cameraIntro.position.z = 8;
 
-      if(track.dataset.shader != undefined) {
-        SHADERS.fragment = track.dataset.shader;
-      }
-
-    });
-  }
-
-  menu_cta.addEventListener('click', () => {
-    mainElement.style.display = 'none';
-    audioElement.play();
-    play();
-  });
+  sceneIntro.add(cameraIntro);
 
 }
+
+const setupRendererIntro = () => {
+
+  rendererIntro = new THREE.WebGLRenderer({
+    canvas: cvs,
+    antialias: true
+  });
+
+  rendererIntro.setSize(SIZE.width, SIZE.height);
+  rendererIntro.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+}
+
+const setupLightsIntro = () => {
+
+  let ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  ambientLight.castShadow = false;
+  sceneIntro.add(ambientLight);
+
+  let spotLight = new THREE.SpotLight(0xffffff, 0.55);
+  spotLight.castShadow = true;
+  spotLight.position.set(0, 80, 10);
+  sceneIntro.add(spotLight);
+
+}
+
+const setupStageModel = () => {
+
+  const loader = new GLTFLoader();
+
+  loader.load(
+    './models/stage/scene.gltf',
+    function(gltf) {
+  
+      sceneIntro.add( gltf.scene );
+  
+      gltf.animations; // Array<THREE.AnimationClip>
+      gltf.scene; // THREE.Group
+      gltf.scenes; // Array<THREE.Group>
+      gltf.cameras; // Array<THREE.Camera>
+      gltf.asset; // Object
+  
+    },
+    function(xhr) {
+      console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    }
+  );
+
+}
+
+const particlesIntro = [];
+
+const setupParticlesIntro = () => {
+  
+  for(let i=0; i<100; i++) {
+
+    const particleGeometry = new THREE.BoxGeometry(.02, .02, .02);
+
+    const particleMaterial = new THREE.MeshLambertMaterial({
+      color: 0xffffff
+    });
+    const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
+    particleMesh.position.x = getRandomIntFromInterval(-10, 10);
+    particleMesh.position.y = getRandomIntFromInterval(0, 1);
+    particleMesh.position.z = getRandomIntFromInterval(-10, 10);
+
+    particlesIntro.push(particleMesh);
+
+    sceneIntro.add(particleMesh);
+
+  }
+
+}
+
+const setupBloomIntro = () => {
+  
+  const renderSceneIntro = new RenderPass(sceneIntro, cameraIntro);
+  composerIntro = new EffectComposer(rendererIntro);
+  composerIntro.addPass(renderSceneIntro);
+
+  // Bloom
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    .5,
+    .5,
+    .1
+  );
+  composerIntro.addPass(bloomPass);
+
+}
+
+function removeSceneIntro() {
+
+  console.log('remove');
+  
+  sceneIntro.removeFromParent();
+
+}
+
+const setupSceneIntro = () => {
+  
+  sceneIntro = new THREE.Scene();
+
+  setupCameraIntro();
+  setupRendererIntro();
+  setupLightsIntro();
+  setupStageModel();
+  setupParticlesIntro();
+  setupBloomIntro();
+
+  const clock = new THREE.Clock();
+
+  let xc = 0;
+  let yc = 0;
+
+  const tick = () => {
+
+    const time = clock.getElapsedTime() * .01;
+    
+    if(composerIntro != null) composerIntro.render(sceneIntro, cameraIntro);
+    else rendererIntro.render(sceneIntro, cameraIntro);
+
+    requestAnimationFrame(tick);
+
+    xc = lerp(xc, -MOUSE.y * .1, .05);
+    yc = lerp(yc, -MOUSE.x * .1, .05);
+
+    cameraIntro.rotation.x = xc;
+    cameraIntro.rotation.y = yc;
+
+    for(let particle of particlesIntro) {
+      if(particle.position.y > 2) {
+        particle.position.y = -1;
+      }
+      particle.position.y += getRandomFloat(.001, .005, 3);
+    }
+
+    headingIntroElt.style.transform = `rotate3d(${xc}, ${yc}, 0)`;
+
+  }
+
+  tick();
+
+}
+
+setupSceneIntro();
+
+function animateStage() {
+  gsap.to(cameraIntro.position, {z: 5, duration: 1, ease: Power2.easeInOut});
+}
+
+function enterStage() {
+  gsap.to(cameraIntro.position, {z: 0, duration: 1, ease: Power2.easeInOut});
+}
+
+function animateStageIntro() {
+  gsap.from(cameraIntro.position, {y: 20, duration: 2, ease: Power2.easeOut});
+}
+
+//animateStageIntro();

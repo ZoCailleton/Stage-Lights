@@ -20,6 +20,7 @@ body {
         width: 100%;
         max-width: 350px;
         height: 60px;
+        background-color: rgba(0, 0, 0, .85);
         border: 2px solid #fff;
         display: inline-block;
         text-align: center;
@@ -74,6 +75,7 @@ section {
         margin: 0 auto;
     }
     &.intro {
+        position: relative;
         padding: 100px 10%;
         display: flex;
         flex-direction: column;
@@ -82,6 +84,19 @@ section {
         position: relative;
         @media screen and (max-width: 600px) {
             text-align: start;
+        }
+        > * {
+            position: relative;
+            z-index: 1;
+        }
+        &::after {
+            content: '';
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .75));
+            position: absolute;
+            left: 0;
+            top: 0;
         }
         .link {
             display: block;
@@ -97,7 +112,7 @@ section {
             justify-content: center;
             gap: .25em;
             font-family: 'Bebas Neue';
-            font-size: 10em;
+            font-size: 8em;
             text-transform: uppercase;
             @media screen and (max-width: 600px) {
                 font-size: 3.5em;
@@ -120,59 +135,6 @@ section {
                 &.neon4 {
                     animation-name: neon4;
                     animation-duration: 1s;
-                }
-                @keyframes neon1 {
-                    0% {
-                        opacity: 0;
-                    }
-                    65% {
-                        opacity: 1;
-                    }
-                    75% {
-                        opacity: .5;
-                    }
-                    100% {
-                        opacity: 1;
-                    }
-                }
-                @keyframes neon2 {
-                    0% {
-                        opacity: 0;
-                    }
-                    75% {
-                        opacity: 0;
-                    }
-                    100% {
-                        opacity: 1;
-                    }
-                }
-                @keyframes neon3 {
-                    50% {
-                        opacity: 0;
-                    }
-                    55% {
-                        opacity: 1;
-                    }
-                    75% {
-                        opacity: 0.5;
-                    }
-                    100% {
-                        opacity: 1;
-                    }
-                }
-                @keyframes neon4 {
-                    70% {
-                        opacity: 0;
-                    }
-                    80% {
-                        opacity: 1;
-                    }
-                    90% {
-                        opacity: .5;
-                    }
-                    100% {
-                        opacity: 1;
-                    }
                 }
             }
         }
@@ -205,7 +167,6 @@ section {
             width: 100%;
             margin-top: 4.5em;
             .track {
-                opacity: .35;
                 cursor: pointer;
                 transition: 100ms;
                 text-align: center;
@@ -241,5 +202,63 @@ section {
         .cta {
             margin-top: 2.5em;
         }
+    }
+}
+
+
+@keyframes neon1 {
+    0% {
+        opacity: 0;
+    }
+    65% {
+        opacity: 1;
+    }
+    75% {
+        opacity: .5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes neon2 {
+    0% {
+        opacity: 0;
+    }
+    75% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes neon3 {
+    50% {
+        opacity: 0;
+    }
+    55% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes neon4 {
+    70% {
+        opacity: 0;
+    }
+    80% {
+        opacity: 1;
+    }
+    90% {
+        opacity: .5;
+    }
+    100% {
+        opacity: 1;
     }
 }
