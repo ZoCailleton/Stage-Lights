@@ -51,21 +51,11 @@ const fragmentShader = () => {
     uniform float u_time;
 
     void main() {
-      // old
-      // gl_FragColor = vec4(mix(u_black, u_white, vUv.x), 1.0);
-      // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-      /* if (vUv.z < .0001) {
-          gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-      } else {
-          gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-      }*/
-      // gl_FragColor = vec4(abs(sin(u_time * .001)), 0.0, 0.0, 1.0);
       if(z > 3.) {
         gl_FragColor = vec4((32.0 - abs(x)) / 32.0, (32.0 - abs(y)) / 32.0, (abs(x + y) / 2.0) / 32.0, 1.0);
       } else {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       }
-      //gl_FragColor = vec4((32.0 - abs(z)) / 32.0, (32.0 - abs(z)) / 32.0, (abs(z) / 2.0) / 32.0, 1.0);
     }
   `;
 };

@@ -5,7 +5,6 @@
 
 body {
     background-color: #000;
-    margin: 0;
     color: #fff;
 }
 
@@ -53,56 +52,73 @@ body {
     }
 }
 
+.neon {
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    &.neon1 {
+        animation-name: neon1;
+        animation-duration: 300ms;
+    }
+    &.neon2 {
+        animation-name: neon2;
+        animation-duration: 500ms;
+    }
+    &.neon3 {
+        animation-name: neon3;
+        animation-duration: 750ms;
+    }
+    &.neon4 {
+        animation-name: neon4;
+        animation-duration: 1s;
+    }
+}
+
 .overlay,
 .navigation {
-    width: 100%;
+    height: 100%;
     position: fixed;
-    left: 0;
+    top: 0;
 }
 
 .overlay {
-    height: 100%;
-    background: radial-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .75));
+    width: 100%;
+    background: radial-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
     pointer-events: none;
-    display: none;
-    &.active {
-        display: block;
-    }
 }
 
 .navigation {
     padding: 35px;
     display: flex;
+    flex-direction: column-reverse;
     justify-content: space-between;
     z-index: 1;
-    &.top {
-        top: 0;
-        transform: translateY(-100px);
-        transition: 300ms;
-        &.active {
-            transform: translateY(0px);
-        }
+    &.left {
+        align-items: flex-start;
+        left: 0;
     }
-    &.bottom {
+    &.right {
         align-items: flex-end;
-        bottom: 0;
+        right: 0;
+    }
+    .icon,
+    .link {
+        display: none;
+        cursor: pointer;
+        &:hover {
+            filter: invert(100%);
+        }
+        &.active {
+            display: block;
+        }
     }
     .icon {
         height: 3em;
-        cursor: pointer;
-        transition: 500ms;
-        pointer-events: inherit;
-        &:hover {
-            opacity: .5;
-        }
+        transition: 300ms;
     }
     a {
         display: block;
         .link {
             height: 3em;
-            &:hover {
-                opacity: .5;
-            }
         }
     }
 }
@@ -136,10 +152,14 @@ section {
     left: 0;
     top: 0;
     z-index: 1;
-    .inner {
+    > .inner {
         width: 100%;
         max-width: 1000px;
         margin: 0 auto;
+        display: none;
+        &.active {
+            display: block;
+        }
     }
     &.intro {
         position: relative;
@@ -149,6 +169,9 @@ section {
         justify-content: center;
         text-align: center;
         position: relative;
+        .inner {
+            perspective: 1000px;
+        }
         @media screen and (max-width: 600px) {
             text-align: start;
         }
@@ -161,40 +184,19 @@ section {
             justify-content: center;
             gap: .25em;
             font-family: 'Bebas Neue';
-            font-size: 8em;
+            font-size: 9em;
             text-transform: uppercase;
+            transform-style: preserve-3d;
             @media screen and (max-width: 600px) {
                 font-size: 3.5em;
             }
-            .letter {
-                animation-iteration-count: 1;
-                animation-fill-mode: forwards;
-                &.neon1 {
-                    animation-name: neon1;
-                    animation-duration: 300ms;
-                }
-                &.neon2 {
-                    animation-name: neon2;
-                    animation-duration: 500ms;
-                }
-                &.neon3 {
-                    animation-name: neon3;
-                    animation-duration: 750ms;
-                }
-                &.neon4 {
-                    animation-name: neon4;
-                    animation-duration: 1s;
-                }
-            }
         }
         p {
-            margin-top: 1.5em;
-            text-transform: uppercase;
-            letter-spacing: 1em;
-            @media screen and (max-width: 600px) {
-                text-transform: none;
-                letter-spacing: inherit;
-            }
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 1.1em;
+            line-height: 1.5em;
+            text-align: center;
         }
         .cta {
             margin-top: 2em;
@@ -220,8 +222,14 @@ section {
                 transition: 100ms;
                 text-align: center;
                 user-select: none;
-                &.active {
+                outline: none !important;
+                opacity: .1;
+                &.is-active {
                     opacity: 1;
+                }
+                &.is-prev,
+                &.is-next {
+                    opacity: .5;
                 }
                 .cover {
                     width: 100%;
@@ -247,8 +255,20 @@ section {
                 }
             }
         }
-        .cta {
+        .controls {
             margin-top: 2.5em;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            .cta {
+                padding: 0 35px;
+                display: flex;
+                align-items: center;
+                &:hover {
+                    background-color: #fff;
+                    color: #000;
+                }
+            }
         }
     }
 }

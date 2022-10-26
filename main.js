@@ -7,23 +7,20 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-import Glide from '@glidejs/glide';
-
-import Swiper from 'swiper';
+import { Splide } from '@splidejs/splide';
 
 import songs from './data/songs.json';
 
 /**
  * TODO :
- * - Génération infinie de planes
- * - Dat GUI
- * - Loader
- * - Particles Intro
- * - Mouse Lerp
- * - Carousel
  * - Particles sur l'intro
- * - Intro screen
  * - Générer les musiques en JSON
+ * - Neon lights
+ * - Texture sur le plane
+ * - Controls
+ * - Disparition des icon après un délai
+ * - Bug son
+ * - Howler
  */
 
 import './reset.css';
@@ -74,6 +71,8 @@ let cvs = null;
 let scene = null;
 let camera = null;
 let renderer = null;
+let clock = null;
+let clockIntro = new THREE.Clock();
 
 let analyser = null;
 let audioContext = null;
@@ -108,15 +107,13 @@ window.addEventListener('resize', () => {
   cvs.style.width = SIZE.width;
   cvs.style.height = SIZE.height;
 
-  if(SCENE === 'intro') {
+  cameraIntro.aspect = SIZE.width / SIZE.height;
+  cameraIntro.updateProjectionMatrix();
 
-    cameraIntro.aspect = SIZE.width / SIZE.height;
-    cameraIntro.updateProjectionMatrix();
+  rendererIntro.setSize(SIZE.width, SIZE.height);
+  rendererIntro.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    rendererIntro.setSize(SIZE.width, SIZE.height);
-    rendererIntro.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
-  } else if(SCENE === 'stage') {
+  if(camera != null) {
 
     camera.aspect = SIZE.width / SIZE.height;
     camera.updateProjectionMatrix();
@@ -205,7 +202,7 @@ const setupAudioContext = () => {
 
 const getRandomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
-function getRandomFloat(min, max, decimals) {
+function getRandomFloatFromInterval(min, max, decimals) {
   const str = (Math.random() * (max - min) + min).toFixed(decimals);
   return parseFloat(str);
 }
@@ -216,7 +213,7 @@ const setupParticles = (_color='0xffffff') => {
 
   for(let i=0; i<1000; i++) {
 
-    let particleSize = getRandomFloat(.1, .2, 1);
+    let particleSize = getRandomFloatFromInterval(.1, .2, 1);
 
     const particleGeometry = new THREE.BoxGeometry(particleSize, particleSize, particleSize);
 
@@ -316,16 +313,18 @@ const showPlanesVerse = () => {
 setupCanvas();
 
 const neonSound = document.getElementById('neon-sound');
-neonSound.volume = .25;
+neonSound.volume = .1;
 
 const play = () => {
   
   SCENE = 'stage';
 
+  clock = new THREE.Clock();
+  clockIntro = null;
+
   neonSound.play();
   audioElement.play();
 
-  navTopElt.classList.add('active');
   overlayElt.classList.remove('active');
 
   if (audioContext === null) setupAudioContext();
@@ -375,13 +374,11 @@ const setupIntroHeading = () => {
     const wordElt = createHTMLElement('span', 'word');
     for(let letter of word.split('')) {
       const letterElt = createHTMLElement('span', 'letter', letter);
-      letterElt.classList.add(opacities[getRandomIntFromInterval(0, 3)]);
+      letterElt.classList.add(opacities[getRandomIntFromInterval(0, 3)], 'neon');
       wordElt.append(letterElt);
     }
     heading.append(wordElt);
   }
-
-  neonSound.play();
 
 }
 
@@ -395,34 +392,63 @@ const reset = (collection, className) => {
 
 const setupTrackSlider = () => {
 
-  const glide = new Glide('#track-list', {
-    type: 'carousel',
-    start: 5,
-    focusAt: 'center',
-    perView: 6,
-    gap: 50,
+  const prevTrackElt = document.querySelector('.controls .prev');
+  const nextTrackElt = document.querySelector('.controls .next');
+
+  const splide = new Splide('#track-list', {
+    type: 'loop',
+    focus: 'center',
+    perPage: 5,
     rewind: true,
-    focusAt: 'center',
-    peek: -100,
-    swipeThreshold: 200,
+    arrows: false,
+    pagination: false,
+    gap: 35,
+    snap: true,
+    slideFocus: true,
+    keyboard: true,
+    padding: 50,
+    updateOnMove: true,
     breakpoints: {
-      600: { perView: 2 },
-      800: { perView: 3 },
-      1000: { perView: 3 },
-      1200: { perView: 4 },
+      800: {
+        perPage: 3
+      },
+      600: {
+        perPage: 2,
+      },
+      400: {
+        perPage: 1
+      }
     }
   });
-  
-  glide.mount();
 
-  /* const swiper = new Swiper('.swiper', {
-    loop: true,
-    slidesPerView: 5,
-    spaceBetween: 35,
-    keyboard: {
-      enabled: true
+  splide.mount();
+
+  splide.on('move', () => {
+
+    const track = document.querySelector(`.splide__slide.is-active`);
+
+    verseStart = Number(track.dataset.verse);
+    audioElement = track.querySelector('audio');
+
+    if(track.dataset.shader != undefined) {
+      SHADERS.fragment = track.dataset.shader;
     }
-  }); */
+
+  });
+
+  for(let track of document.querySelectorAll('.splide__slide')) {
+    track.addEventListener('click', () => {
+      splide.go('+1');
+    });
+  }
+
+  prevTrackElt.addEventListener('click', () => {
+    splide.go('-1');
+  });
+
+  nextTrackElt.addEventListener('click', () => {
+    splide.go('+1');
+  });
 
 }
 
@@ -467,32 +493,13 @@ const menu_cta = document.querySelector('.menu .cta.start');
 const mainElement = document.querySelector('main');
 
 intro_cta.addEventListener('click', () => {
+  iconBack.classList.add('active');
   animateStage();
   mainElement.classList.add('launched');
 });
 
-for(let track of document.querySelectorAll('.track')) {
-
-  track.addEventListener('click', () => {
-
-    reset('.track', 'active');
-
-    verseStart = Number(track.dataset.verse);
-    audioElement = track.querySelector('audio');
-    console.log(audioElement);
-    track.classList.add('active');
-
-    console.log(verseStart);
-
-    if(track.dataset.shader != undefined) {
-      SHADERS.fragment = track.dataset.shader;
-    }
-
-  });
-}
-
 menu_cta.addEventListener('click', () => {
-  mainElement.classList.remove('active');
+  iconPause.classList.add('active');
   enterStage();
   setTimeout(play, 1000);
 });
@@ -543,6 +550,15 @@ const setupLightsIntro = () => {
 
 const setupStageModel = () => {
 
+  const boxGeo = new THREE.PlaneGeometry(11, 4, 10);
+  const boxMat = new THREE.MeshStandardMaterial({
+    color: 0x000000
+  });
+  const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+  boxMesh.position.z = -3;
+  boxMesh.position.y = 2.75;
+  sceneIntro.add(boxMesh);
+
   const loader = new GLTFLoader();
 
   loader.load(
@@ -560,6 +576,8 @@ const setupStageModel = () => {
     },
     function(xhr) {
       console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+      document.querySelector('.loader .amount').style.transform = `scaleX(${xhr.loaded / xhr.total})`;
+      setTimeout(initAnimation, 1000);
     }
   );
 
@@ -569,17 +587,17 @@ const particlesIntro = [];
 
 const setupParticlesIntro = () => {
   
-  for(let i=0; i<100; i++) {
+  for(let i=0; i<200; i++) {
 
-    const particleGeometry = new THREE.BoxGeometry(.02, .02, .02);
+    const particleGeometry = new THREE.SphereGeometry(.01);
 
     const particleMaterial = new THREE.MeshLambertMaterial({
       color: 0xffffff
     });
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
-    particleMesh.position.x = getRandomIntFromInterval(-10, 10);
-    particleMesh.position.y = getRandomIntFromInterval(0, 1);
-    particleMesh.position.z = getRandomIntFromInterval(-10, 10);
+    particleMesh.position.x = getRandomFloatFromInterval(-10, 10, 2);
+    particleMesh.position.y = getRandomFloatFromInterval(1, 20, 2);
+    particleMesh.position.z = getRandomFloatFromInterval(-20, 10, 2);
 
     particlesIntro.push(particleMesh);
 
@@ -598,11 +616,20 @@ const setupBloomIntro = () => {
   // Bloom
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    .5,
+    .75,
     .5,
     .1
   );
   composerIntro.addPass(bloomPass);
+  
+  if(debug) {
+
+    const bloomFolder = gui.addFolder('Bloom');
+    bloomFolder.add(bloomPass, 'strength', 0, 10)
+    bloomFolder.add(bloomPass, 'radius', 0, 10)
+    bloomFolder.open()
+
+  }
 
 }
 
@@ -615,21 +642,41 @@ function toggleFullScreen() {
 }
 
 const overlayElt = document.querySelector('.overlay');
-const navTopElt = document.querySelector('.navigation.top');
 const iconBack = document.querySelector('.navigation .icon.back');
 const iconPause = document.querySelector('.navigation .icon.pause');
 const iconFullscreen = document.querySelector('.navigation .icon.fullscreen');
+const iconGobelins = document.querySelector('.navigation .link');
+const menuElt = document.querySelector('.menu');
 
 iconBack.addEventListener('click', () => {
-  mainElement.classList.add('active');
-  audioElement = null;
-  SCENE = 'intro';
-  animateStage();
+
+  if(SCENE === 'intro') {
+
+    mainElement.classList.remove('launched');
+    iconBack.classList.remove('active');
+    getBackToSage();
+
+  } else if(SCENE === 'stage') {
+
+    mainElement.classList.add('active');
+    audioElement.pause();
+    SCENE = 'intro';
+    clockIntro = new THREE.Clock();
+    animateStage();
+
+  }
+
 });
 
 iconPause.addEventListener('click', () => {
   PAUSE = !PAUSE;
-  PAUSE ? audioElement.pause() : audioElement.play();
+  if(PAUSE) {
+    audioElement.pause();
+    iconPause.src = './assets/icon-play.png';
+  } else {
+    audioElement.play();
+    iconPause.src = './assets/icon-pause.png';
+  }
 });
 
 iconFullscreen.addEventListener('click', () => {
@@ -644,7 +691,7 @@ const setupSceneIntro = () => {
   setupRendererIntro();
   setupLightsIntro();
   setupStageModel();
-  //setupParticlesIntro();
+  setupParticlesIntro();
   setupBloomIntro();
 
 }
@@ -652,20 +699,59 @@ const setupSceneIntro = () => {
 setupSceneIntro();
 
 function animateStage() {
-  gsap.to(cameraIntro.position, {z: 5, duration: 1, ease: Power2.easeInOut});
+  let tl = gsap.timeline();
+  tl.add('launch');
+  tl.to(overlayElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
+  tl.to(cameraIntro.position, {z: 5, y: 2.5, duration: 1, ease: Power2.easeInOut}, 'launch');
+  tl.from(menuElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
+  tl.to(menuElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
+}
+
+function getBackToSage() {
+  let tl = gsap.timeline();
+  tl.add('back');
+  tl.to(overlayElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
+  tl.to(cameraIntro.position, {z: 8, duration: 1, ease: Power2.easeInOut}, 'launch');
 }
 
 function enterStage() {
-  gsap.to(cameraIntro.position, {z: -5, duration: 1, ease: Power2.easeInOut});
+  let tl = gsap.timeline();
+  tl.add('enter');
+  tl.to(cameraIntro.position, {z: -5, duration: 1, ease: Power2.easeInOut}, 'enter');
+  tl.to(menuElt, {opacity: 0, duration: .25, ease: Power2.easeInOut}, 'enter');
 }
 
 function animateStageIntro() {
   gsap.from(cameraIntro.position, {y: 20, duration: 2, ease: Power2.easeOut});
 }
 
-//animateStageIntro();
+function initAnimation() {
 
-const clock = new THREE.Clock();
+  document.querySelector('.amount').style.transform = 'translateX(100%)';
+  
+  if(!debug) {
+
+    setTimeout(() => {
+      document.querySelector('.loader').style.display = 'none';
+      animateStageIntro();
+    }, 1000);
+  
+    setTimeout(() => {
+      document.querySelector('.intro > .inner').classList.add('active');
+      iconFullscreen.classList.add('active');
+      iconGobelins.classList.add('active');
+      neonSound.play();
+    }, 2500);
+
+  } else {
+    document.querySelector('.loader').style.display = 'none';
+    document.querySelector('.intro > .inner').classList.add('active');
+    iconBack.classList.add('active');
+    //mainElement.classList.add('launched');
+    //animateStage();
+  }
+  
+}
 
 let xc = 0;
 let yc = 0;
@@ -673,12 +759,12 @@ let yc = 0;
 let verse = false;
 
 const tick = () => {
-
-  // Lerp
-  xc = lerp(xc, -MOUSE.y * .1, .05);
-  yc = lerp(yc, -MOUSE.x * .1, .05);
   
   if(SCENE === 'intro') {
+
+    const time = clockIntro.getElapsedTime() * .01;
+
+    //console.log('Time intro : ' + time);
 
     if(composerIntro != null) {
       composerIntro.render(sceneIntro, cameraIntro);
@@ -686,17 +772,23 @@ const tick = () => {
       rendererIntro.render(sceneIntro, cameraIntro);
     }
 
+    // Lerp
+    xc = lerp(xc, -MOUSE.y * .1, .05);
+    yc = lerp(yc, -MOUSE.x * .1, .05);
+    
     cameraIntro.rotation.x = xc;
     cameraIntro.rotation.y = yc;
+    
+    cameraIntro.position.y += Math.sin(time * 100) * 0.001;
 
     for(let particle of particlesIntro) {
-      if(particle.position.y > 2) {
-        particle.position.y = -1;
+      if(particle.position.y > 10) {
+        particle.position.y = 2;
       }
-      particle.position.y += getRandomFloat(.001, .005, 3);
+      particle.position.y += getRandomFloatFromInterval(.001, .005, 3);
     }
   
-    headingIntroElt.style.transform = `rotate3d(${xc}, ${yc}, 0)`;
+    document.querySelector('.intro .heading').style.transform = `rotateX(${xc*75}deg) rotateY(${-yc*75}deg)`;
 
   }
   
@@ -704,7 +796,7 @@ const tick = () => {
 
     const time = clock.getElapsedTime() * .01;
   
-    //console.log(time);
+    console.log('Time stage : ' + time);
     
     if(verse) {
       //camera.rotation.z += 0.005;
@@ -725,7 +817,7 @@ const tick = () => {
 
       for(let particle of particles) {
         if(particle.position.z > 100) {
-          particle.position.z = -50;
+          particle.position.z = -10;
         } else {
           particle.position.z += 0.1;
         }

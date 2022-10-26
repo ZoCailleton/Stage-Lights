@@ -3,29 +3,68 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      body {
+        margin: 0;
+      }
+      .loader {
+        width: 100%;
+        height: 100vh;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        z-index: 9999;
+      }
+      .loader .loading {
+        width: 100%;
+        max-width: 150px;
+        height: 2px;
+        overflow: hidden;
+      }
+      .amount {
+        width: 100%;
+        height: 100%;
+        background-color: #fff;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: 100ms;
+      }
+    </style>
+
     <link rel="stylesheet" href="node_modules/@glidejs/glide/dist/css/glide.core.min.css">
     <link rel="stylesheet" href="node_modules/@splidejs/splide/dist/css/splide.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css"/>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit&display=swap" rel="stylesheet">
     <title>The Space Visualizer - A Three JS Experience</title>
   </head>
   <body>
+
+    <div class="loader">
+      <div class="loading">
+        <div class="amount"></div>
+      </div>
+    </div>
+
     <div class="app">
 
       <div class="overlay active"></div>
 
-      <nav class="navigation top">
-        <img class="icon back" src="./assets/icon-back.png" alt="Retour à l'accueil">
-        <img class="icon pause" src="./assets/icon-pause.png" alt="Mettre en pause la musique">
+      <nav class="navigation left">
+        <a href="https://www.gobelins.fr/" target="_blank">
+          <img class="link neon neon4" src="./assets/logo-gobelins.png" alt="Gobelins">
+        </a>
+        <img class="icon back neon neon4" src="./assets/icon-back.png" alt="Retour à l'accueil">
       </nav>
 
-      <nav class="navigation bottom">
-        <a href="https://www.gobelins.fr/" target="_blank">
-          <img class="link" src="./assets/logo-gobelins.png" alt="Gobelins">
-        </a>
-        <img class="icon fullscreen" src="./assets/icon-fullscreen.png" alt="Mode plein-écran">
+      <nav class="navigation right">
+        <img class="icon fullscreen neon neon3" src="./assets/icon-fullscreen.png" alt="Mode plein-écran">
+        <img class="icon pause neon neon4" src="./assets/icon-pause.png" alt="Mettre en pause la musique">
       </nav>
 
       <main class="active">
@@ -33,11 +72,11 @@
         <section class="intro">
 
           <div class="inner">
-            <h1 class="heading">Stage Visualizer</h1>
+            <h1 class="heading">Stage Generator</h1>
             <div class="cta">
               <div class="inner">
-                <div>Generate the visualizer</div>
-                <div>Generate the visualizer</div>
+                <div>Generate a visualizer</div>
+                <div>Generate a visualizer</div>
               </div>
             </div>
           </div>
@@ -48,12 +87,12 @@
 
           <h2 class="heading">Choose the song to play</h2>
 
-          <div id="track-list" class="tracks">
+          <div id="track-list" class="splide tracks">
             
-            <div class="glide__track" data-glide-el="track">
-              <div class="glide__slides">
+            <div class="splide__track">
+              <div class="splide__list">
 
-                <div data-verse="0.00" class="glide__slide track active">
+                <div data-verse="0.00" class="splide__slide track active">
                   <div class="cover">
                     <img src="./covers/2014-forest-drive-hill.png" alt="2014 Forest Drive Hill by J. Cole">
                   </div>
@@ -61,7 +100,7 @@
                   <p class="author">J. Cole</p>
                   <audio src="./audio/no-role-modelz.mp3"></audio>
                 </div>
-                <div data-verse="0.125" data-shader="green" class="glide__slide track">
+                <div data-verse="0.125" data-shader="green" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/die-for-my-bitch.png" alt="Die for my bitch by Baby Keem">
                   </div>
@@ -69,7 +108,7 @@
                   <p class="author">Baby Keem</p>
                   <audio src="./audio/honest.mp3"></audio>
                 </div>
-                <div data-verse="0.16" class="glide__slide track">
+                <div data-verse="0.16" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
                   </div>
@@ -77,7 +116,7 @@
                   <p class="author">Kendrick Lamar</p>
                   <audio src="./audio/bitch-dont-kill-my-vibe.mp3"></audio>
                 </div>
-                <div data-verse=".15" class="glide__slide track">
+                <div data-verse=".15" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/papoose.jpg" alt="Good Kid Maad City by Kendrick Lamar">
                   </div>
@@ -85,7 +124,7 @@
                   <p class="author">Vald</p>
                   <audio src="./audio/vald-papoose.mp3"></audio>
                 </div>
-                <div data-verse="0.02" class="glide__slide track">
+                <div data-verse="0.02" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/vivaldi.jpeg" alt="Winter by Vivaldi">
                   </div>
@@ -93,7 +132,7 @@
                   <p class="author">Vivaldi</p>
                   <audio src="./audio/vivaldi-winter.mp3"></audio>
                 </div>
-                <div data-verse="0.265" class="glide__slide track hidden">
+                <div data-verse="0.265" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/good-kid-maad-city.jpeg" alt="Good Kid Maad City by Kendrick Lamar">
                   </div>
@@ -101,7 +140,7 @@
                   <p class="author">Vivaldi</p>
                   <audio src="./audio/vivaldi-drill.mp3"></audio>
                 </div>
-                <div data-verse="0.12" class="glide__slide track">
+                <div data-verse="0.12" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/praise-the-lord.jpg" alt="Good Kid Maad City by Kendrick Lamar">
                   </div>
@@ -109,7 +148,7 @@
                   <p class="author">A$AP Rocky ft. Skepta</p>
                   <audio src="./audio/praise-the-lord.mp3"></audio>
                 </div>
-                <div data-verse="0.13" class="glide__slide track">
+                <div data-verse="0.13" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/mauvais-ordre.jpeg" alt="Mauvais ordre by Lomepal">
                   </div>
@@ -117,7 +156,7 @@
                   <p class="author">Lomepal</p>
                   <audio src="./audio/lomepal-50-degres.mp3"></audio>
                 </div>
-                <div data-verse="0.32" class="glide__slide track">
+                <div data-verse="0.32" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
                   </div>
@@ -125,7 +164,7 @@
                   <p class="author">Knucks</p>
                   <audio src="./audio/los-pollos-hermanos.mp3"></audio>
                 </div>
-                <div data-verse="0.01" data-shader="green" class="glide__slide track">
+                <div data-verse="0.01" data-shader="green" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/melo.jpg" alt="Los Pollos Hermanos by Knucks">
                   </div>
@@ -133,7 +172,7 @@
                   <p class="author">Tiakola</p>
                   <audio src="./audio/si-jsavais.mp3"></audio>
                 </div>
-                <div data-verse="0.32" class="glide__slide track hidden">
+                <div data-verse="0.32" data-shader="violet" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
                   </div>
@@ -141,7 +180,7 @@
                   <p class="author">Damso</p>
                   <audio src="./audio/autotune.mp3"></audio>
                 </div>
-                <div data-verse="0.175" class="glide__slide track">
+                <div data-verse="0.175" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/verre-d-eau.jpeg" alt="Verre d'eau by pxzvc">
                   </div>
@@ -149,7 +188,7 @@
                   <p class="author">pxzvc</p>
                   <audio src="./audio/verre-d-eau.mp3"></audio>
                 </div>
-                <div data-verse="0.32" class="glide__slide track">
+                <div data-verse="0.275" data-shader="violet" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/los-pollos-hermanos.jpeg" alt="Los Pollos Hermanos by Knucks">
                   </div>
@@ -157,7 +196,7 @@
                   <p class="author">Damso</p>
                   <audio src="./audio/signaler.mp3"></audio>
                 </div>
-                <div data-verse="0.0" data-shader="violet" class="glide__slide track">
+                <div data-verse="0.0" data-shader="violet" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/roses.jpg" alt="Roses by Imenbek">
                   </div>
@@ -165,7 +204,7 @@
                   <p class="author">Imenbek</p>
                   <audio src="./audio/roses.mp3"></audio>
                 </div>
-                <div data-verse="0.16" data-shader="rave" class="glide__slide track">
+                <div data-verse="0.16" data-shader="rave" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/rave.jpeg" alt="Rave by Dxrk ダーク">
                   </div>
@@ -173,15 +212,15 @@
                   <p class="author">Dxrk ダーク</p>
                   <audio src="./audio/rave.mp3"></audio>
                 </div>
-                <div data-verse="0.0" class="track">
+                <div data-verse="0.0" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/skyfall.jpeg" alt="Skyfall by Adèle">
                   </div>
-                  <h3 class="title">Skyfall (Slowed & Reverb)</p>
+                  <h3 class="title">Skyfall</p>
                   <p class="author">Adèle</p>
                   <audio src="./audio/skyfall.mp3"></audio>
                 </div>
-                <div data-verse="0.0" class="track">
+                <div data-verse="0.0" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/no-idea.png" alt="No Idea by Don Toliver">
                   </div>
@@ -189,7 +228,7 @@
                   <p class="author">Don Toliver</p>
                   <audio src="./audio/no-idea.mp3"></audio>
                 </div>
-                <div data-verse="0.0" class="track">
+                <div data-verse="0.205" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/virtual-insanity.jpg" alt="Virtual Insanity by Jamiroquai">
                   </div>
@@ -197,7 +236,7 @@
                   <p class="author">Jamiroquai</p>
                   <audio src="./audio/virtual-insanity.mp3"></audio>
                 </div>
-                <div data-verse="0.10" class="track">
+                <div data-verse="0.10" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/cassius.jpeg" alt="I love you so by Cassius">
                   </div>
@@ -205,7 +244,7 @@
                   <p class="author">Casius</p>
                   <audio src="./audio/i-love-you-so.mp3"></audio>
                 </div>
-                <div data-verse="0.175" data-shader="blue" class="track">
+                <div data-verse="0.175" data-shader="blue" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/rien-de-special.jpg" alt="Rien d'spécial by Népal">
                   </div>
@@ -213,7 +252,7 @@
                   <p class="author">Népal</p>
                   <audio src="./audio/rien-de-special.mp3"></audio>
                 </div>
-                <div data-verse="0.0" data-shader="blue" class="track">
+                <div data-verse="0.0" data-shader="blue" class="splide__slide track">
                   <div class="cover">
                     <img src="./covers/le-monde-ou-rien.jpg" alt="Le monde ou rien by PNL">
                   </div>
@@ -227,11 +266,12 @@
 
           </div>
           
-          <div class="cta start">
-            <div class="inner">
-              <div>Generate the visualizer</div>
-              <div>Generate the visualizer</div>
+          <div class="controls">
+            <div class="prev">Gauche</div>
+            <div class="cta start">
+              <div>Chose this song</div>
             </div>
+            <div class="next">Droite</div>
           </div>
 
         </section>
