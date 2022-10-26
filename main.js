@@ -14,11 +14,13 @@ import songs from './data/songs.json';
 
 /**
  * TODO :
- * - Générer les musiques en JSON
+ * - Génération infinie de planes
+ * - Mouse Lerp
+ * - Carousel
+ * - Test Scene Intro
  * - Particles sur l'intro
  * - Intro screen
- * - Génération infinie de plane
- * - Variations Fragment Shader
+ * - Générer les musiques en JSON
  */
 
 import './reset.css';
@@ -387,7 +389,13 @@ const setupTrackSlider = () => {
     rewind: true,
     focusAt: 'center',
     peek: -100,
-    swipeThreshold: 200
+    swipeThreshold: 200,
+    breakpoints: {
+      600: { perView: 2 },
+      800: { perView: 3 },
+      1000: { perView: 3 },
+      1200: { perView: 4 },
+    }
   });
   
   glide.mount();

@@ -19,15 +19,32 @@ body {
     .cta {
         width: 100%;
         max-width: 350px;
-        background-color: #3c2ce8;
-        padding: 20px 25px;
-        border-radius: 5px;
+        height: 60px;
+        border: 2px solid #fff;
         display: inline-block;
         text-align: center;
         cursor: pointer;
-        transition: 100ms;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        overflow: hidden;
+        .inner {
+            transition: transform 300ms;
+            > div {
+                height: 60px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                &:last-child {
+                    background-color: #fff;
+                    color: #000;
+                }
+            }
+        }
         &:hover {
-            opacity: .75;
+            .inner {
+                transform: translateY(-60px);
+            }
         }
     }
     audio {
@@ -51,7 +68,6 @@ section {
     left: 0;
     top: 0;
     z-index: 1;
-    overflow: auto;
     .inner {
         width: 100%;
         max-width: 1000px;
@@ -63,16 +79,26 @@ section {
         flex-direction: column;
         justify-content: center;
         text-align: center;
+        position: relative;
         @media screen and (max-width: 600px) {
             text-align: start;
+        }
+        .link {
+            display: block;
+            position: absolute;
+            right: 2em;
+            bottom: 2em;
+            img {
+                height: 4em;
+            }
         }
         .heading {
             display: flex;
             justify-content: center;
             gap: .25em;
-            font-size: 6em;
+            font-family: 'Bebas Neue';
+            font-size: 10em;
             text-transform: uppercase;
-            font-weight: 600;
             @media screen and (max-width: 600px) {
                 font-size: 3.5em;
             }
@@ -160,7 +186,7 @@ section {
             }
         }
         .cta {
-            margin-top: 2.5em;
+            margin-top: 2em;
         }
     }
     &.menu {
@@ -173,6 +199,7 @@ section {
         }
         .heading {
             font-size: 2em;
+            font-family: 'Bebas Neue';
         }
         .tracks {
             width: 100%;
