@@ -19,7 +19,6 @@ import songs from './data/songs.json';
  * - Texture sur le plane
  * - Controls
  * - Disparition des icon après un délai
- * - Bug son
  * - Howler
  */
 
@@ -186,7 +185,7 @@ const setupScene = () => {
 
 }
 
-let audioElement = document.querySelector('.track:first-child audio');
+let audioElement = null;
 
 const setupAudioContext = () => {
 
@@ -327,7 +326,7 @@ const play = () => {
 
   overlayElt.classList.remove('active');
 
-  if (audioContext === null) setupAudioContext();
+  setupAudioContext();
 
   uniforms = {
     u_time: {
@@ -434,6 +433,11 @@ const setupTrackSlider = () => {
       SHADERS.fragment = track.dataset.shader;
     }
 
+  });
+
+  window.addEventListener('keydown', e => {
+    if(e.key === 'ArrowLeft') splide.go('-1');
+    if(e.key === 'ArrowRight') splide.go('+1');
   });
 
   for(let track of document.querySelectorAll('.splide__slide')) {
@@ -654,6 +658,7 @@ iconBack.addEventListener('click', () => {
 
     mainElement.classList.remove('launched');
     iconBack.classList.remove('active');
+    iconPause.classList.remove('active');
     getBackToSage();
 
   } else if(SCENE === 'stage') {
@@ -701,7 +706,7 @@ setupSceneIntro();
 function animateStage() {
   let tl = gsap.timeline();
   tl.add('launch');
-  tl.to(overlayElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
+  tl.to(overlayElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
   tl.to(cameraIntro.position, {z: 5, y: 2.5, duration: 1, ease: Power2.easeInOut}, 'launch');
   tl.from(menuElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
   tl.to(menuElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
@@ -710,14 +715,15 @@ function animateStage() {
 function getBackToSage() {
   let tl = gsap.timeline();
   tl.add('back');
-  tl.to(overlayElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
-  tl.to(cameraIntro.position, {z: 8, duration: 1, ease: Power2.easeInOut}, 'launch');
+  tl.to(overlayElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
+  tl.to(cameraIntro.position, {z: 8, y: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
 }
 
 function enterStage() {
   let tl = gsap.timeline();
   tl.add('enter');
   tl.to(cameraIntro.position, {z: -5, duration: 1, ease: Power2.easeInOut}, 'enter');
+  tl.to(overlayElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'enter');
   tl.to(menuElt, {opacity: 0, duration: .25, ease: Power2.easeInOut}, 'enter');
 }
 
