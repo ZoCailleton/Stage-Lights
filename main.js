@@ -531,7 +531,8 @@ const setupCameraIntro = () => {
 
   cameraIntro = new THREE.PerspectiveCamera(60, SIZE.width / SIZE.height, 0.1, 100);
   cameraIntro.position.y = 1;
-  cameraIntro.position.z = 8;
+  if(SIZE.width < 500) cameraIntro.position.z = 10;
+  else cameraIntro.position.z = 8;
 
   sceneIntro.add(cameraIntro);
 
@@ -701,8 +702,7 @@ iconBack.addEventListener('click', () => {
 
 });
 
-iconPause.addEventListener('click', () => {
-  PAUSE = !PAUSE;
+const togglePause = () => {PAUSE = !PAUSE;
   if(PAUSE) {
     audioElement.pause();
     iconPause.src = './assets/icon-play.png';
@@ -710,6 +710,12 @@ iconPause.addEventListener('click', () => {
     audioElement.play();
     iconPause.src = './assets/icon-pause.png';
   }
+}
+
+iconPause.addEventListener('click', togglePause);
+
+window.addEventListener('keypress', e => {
+  if(e.keyCode === 32) togglePause();
 });
 
 iconFullscreen.addEventListener('click', () => {
@@ -752,7 +758,9 @@ function enterStage() {
   tl.add('enter');
   tl.to(cameraIntro.position, {z: -5, duration: 1, ease: Power2.easeInOut}, 'enter');
   tl.to(overlayElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'enter');
-  tl.to(menuElt, {opacity: 0, duration: .25, ease: Power2.easeInOut}, 'enter');
+  tl.to(menuElt, {opacity: 0, duration: .25, ease: Power2.easeInOut, onComplete: () => {
+    mainElement.classList.remove('active');
+  }}, 'enter');
 }
 
 function animateStageIntro() {
