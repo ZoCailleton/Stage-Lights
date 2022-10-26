@@ -13,7 +13,6 @@ import songs from './data/songs.json';
 
 /**
  * TODO :
- * - Particles sur l'intro
  * - Générer les musiques en JSON
  * - Neon lights
  * - Texture sur le plane
@@ -187,6 +186,24 @@ const setupScene = () => {
 
 let audioElement = null;
 
+const getCurrentTrack = () => {
+
+  let track = document.querySelector(`.splide__slide.is-active`);
+  if(track == undefined) track = document.querySelector('.splide__slide:first-child');
+
+  verseStart = Number(track.dataset.verse);
+  audioElement = track.querySelector('audio');
+
+  if(track.dataset.shader != undefined) {
+    SHADERS.fragment = track.dataset.shader;
+  } else {
+    SHADERS.fragment = 'base';
+  }
+
+}
+
+getCurrentTrack();
+
 const setupAudioContext = () => {
 
 	audioContext = new window.AudioContext();
@@ -254,6 +271,8 @@ const setupPlaneIntro = () => {
     planeCustomMaterial1.fragmentShader = fragmentShader3();
   } else if(SHADERS.fragment === 'green') {
     planeCustomMaterial1.fragmentShader = fragmentShader4();
+  } else {
+    planeCustomMaterial1.fragmentShader = fragmentShader2();
   }
 
   planeMeshIntro = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
@@ -285,6 +304,8 @@ const setupPlanesVerse = () => {
         planeCustomMaterial.fragmentShader = fragmentShader3();
       } else if(SHADERS.fragment === 'green') {
         planeCustomMaterial.fragmentShader = fragmentShader4();
+      } else {
+        planeCustomMaterial.fragmentShader = fragmentShader2();
       }
 
       const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
@@ -422,18 +443,7 @@ const setupTrackSlider = () => {
 
   splide.mount();
 
-  splide.on('move', () => {
-
-    const track = document.querySelector(`.splide__slide.is-active`);
-
-    verseStart = Number(track.dataset.verse);
-    audioElement = track.querySelector('audio');
-
-    if(track.dataset.shader != undefined) {
-      SHADERS.fragment = track.dataset.shader;
-    }
-
-  });
+  splide.on('move', getCurrentTrack);
 
   window.addEventListener('keydown', e => {
     if(e.key === 'ArrowLeft') splide.go('-1');
@@ -552,16 +562,35 @@ const setupLightsIntro = () => {
 
 }
 
+const screenIntroAnimation = () => {
+  let tl = gsap.timeline();
+  tl.to(screenIntroMat, {opacity: 1, duration: .25, ease: Power2.easeInOut});
+  tl.to(screenIntroMat, {opacity: 0, duration: .1, ease: Power2.easeInOut});
+  tl.to(screenIntroMat, {opacity: 1, duration: 0, ease: Power2.easeInOut});
+  tl.to(screenIntroMat, {opacity: 0, duration: .25, ease: Power2.easeInOut});
+}
+
+let screenIntroMat = null;
+
 const setupStageModel = () => {
 
-  const boxGeo = new THREE.PlaneGeometry(11, 4, 10);
-  const boxMat = new THREE.MeshStandardMaterial({
-    color: 0x000000
+  const texture = new THREE.TextureLoader().load( './covers/melo.jpg' );
+
+  const boxGeo = new THREE.PlaneGeometry(10, 4, 10);
+  screenIntroMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    //map: texture
+    transparent: true
   });
-  const boxMesh = new THREE.Mesh(boxGeo, boxMat);
-  boxMesh.position.z = -3;
-  boxMesh.position.y = 2.75;
+  const boxMesh = new THREE.Mesh(boxGeo, screenIntroMat);
+  boxMesh.position.z = -1;
+  boxMesh.position.y = 2.5;
+  screenIntroMat.opacity = 0;
   sceneIntro.add(boxMesh);
+
+  setInterval(() => {
+    screenIntroAnimation();
+  }, 7000);
 
   const loader = new GLTFLoader();
 
@@ -579,7 +608,6 @@ const setupStageModel = () => {
   
     },
     function(xhr) {
-      console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
       document.querySelector('.loader .amount').style.transform = `scaleX(${xhr.loaded / xhr.total})`;
       setTimeout(initAnimation, 1000);
     }
@@ -728,7 +756,8 @@ function enterStage() {
 }
 
 function animateStageIntro() {
-  gsap.from(cameraIntro.position, {y: 20, duration: 2, ease: Power2.easeOut});
+  let tl = gsap.timeline();
+  tl.from(cameraIntro.position, {y: 20, duration: 2, ease: Power2.easeOut});
 }
 
 function initAnimation() {
@@ -747,7 +776,7 @@ function initAnimation() {
       iconFullscreen.classList.add('active');
       iconGobelins.classList.add('active');
       neonSound.play();
-    }, 2500);
+    }, 2000);
 
   } else {
     document.querySelector('.loader').style.display = 'none';
@@ -769,8 +798,6 @@ const tick = () => {
   if(SCENE === 'intro') {
 
     const time = clockIntro.getElapsedTime() * .01;
-
-    //console.log('Time intro : ' + time);
 
     if(composerIntro != null) {
       composerIntro.render(sceneIntro, cameraIntro);
@@ -801,15 +828,6 @@ const tick = () => {
   if(SCENE === 'stage') {
 
     const time = clock.getElapsedTime() * .01;
-  
-    console.log('Time stage : ' + time);
-    
-    if(verse) {
-      //camera.rotation.z += 0.005;
-      //camera.position.z -= 0.1;
-    } else {
-      //camera.position.z -= 0.01;
-    }
 
     if(!PAUSE) {
 
