@@ -74,10 +74,13 @@ body {
     padding: 35px;
     display: flex;
     justify-content: space-between;
+    z-index: 1;
     &.top {
         top: 0;
+        transform: translateY(-100px);
+        transition: 300ms;
         &.active {
-            transform: translateY(-100px);
+            transform: translateY(0px);
         }
     }
     &.bottom {

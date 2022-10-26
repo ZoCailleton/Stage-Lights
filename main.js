@@ -254,6 +254,10 @@ const setupPlaneIntro = () => {
     planeCustomMaterial1.fragmentShader = raveFrag();
   } else if(SHADERS.fragment === 'blue') {
     planeCustomMaterial1.fragmentShader = blueFrag();
+  } else if(SHADERS.fragment === 'violet') {
+    planeCustomMaterial1.fragmentShader = fragmentShader3();
+  } else if(SHADERS.fragment === 'green') {
+    planeCustomMaterial1.fragmentShader = fragmentShader4();
   }
 
   planeMeshIntro = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
@@ -321,7 +325,7 @@ const play = () => {
   neonSound.play();
   audioElement.play();
 
-  navTopElt.classList.remove('active');
+  navTopElt.classList.add('active');
   overlayElt.classList.remove('active');
 
   if (audioContext === null) setupAudioContext();
@@ -618,13 +622,14 @@ const iconFullscreen = document.querySelector('.navigation .icon.fullscreen');
 
 iconBack.addEventListener('click', () => {
   mainElement.classList.add('active');
-  audioElement.pause();
+  audioElement = null;
   SCENE = 'intro';
   animateStage();
 });
 
 iconPause.addEventListener('click', () => {
   PAUSE = !PAUSE;
+  PAUSE ? audioElement.pause() : audioElement.play();
 });
 
 iconFullscreen.addEventListener('click', () => {
@@ -726,18 +731,18 @@ const tick = () => {
         }
       }
 
+      if(time > verseStart && !verse) {
+        planeMeshIntro.removeFromParent();
+        showPlanesVerse();
+        verse = true;
+      }
+  
+      analyser.getByteFrequencyData(dataArray);
+  
+      uniforms.u_time.value = time;
+      uniforms.u_data_arr.value = dataArray;
+
     }
-
-    if(time > verseStart && !verse) {
-      planeMeshIntro.removeFromParent();
-      showPlanesVerse();
-      verse = true;
-    }
-
-    analyser.getByteFrequencyData(dataArray);
-
-    uniforms.u_time.value = time;
-    uniforms.u_data_arr.value = dataArray;
 
     composer.render(scene, camera);
 
