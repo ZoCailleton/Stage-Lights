@@ -466,6 +466,8 @@ const setupTrackSlider = () => {
   splide.on('move', getCurrentTrack);
 
   window.addEventListener('keydown', e => {
+
+    noInteractionTime = 0;
     
     if(SCENE === 'intro') {
 
@@ -488,6 +490,7 @@ const setupTrackSlider = () => {
       if(e.key === 'ArrowUp') backToIntro();
       if(e.key === 'ArrowDown') goToMenu();
       if(e.key === 'Enter') launchStage();
+      
     }
 
     if(SCENE === 'stage') {
