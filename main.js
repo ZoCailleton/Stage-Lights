@@ -95,6 +95,8 @@ if(debug) {
   gui = new dat.GUI();
 }
 
+let trackElt = null;
+
 window.addEventListener('resize', () => {
 
   SIZE.width = window.innerWidth;
@@ -189,14 +191,14 @@ let audioElement = null;
 
 const getCurrentTrack = () => {
 
-  let track = document.querySelector(`.splide__slide.is-active`);
-  if(track == undefined) track = document.querySelector('.splide__slide:first-child');
+  trackElt = document.querySelector(`.splide__slide.is-active`);
+  if(trackElt == undefined) trackElt = document.querySelector('.splide__slide:first-child');
 
-  verseStart = Number(track.dataset.verse);
-  audioElement = track.querySelector('audio');
+  verseStart = Number(trackElt.dataset.verse);
+  audioElement = trackElt.querySelector('audio');
 
-  if(track.dataset.shader != undefined) {
-    SHADERS.fragment = track.dataset.shader;
+  if(trackElt.dataset.shader != undefined) {
+    SHADERS.fragment = trackElt.dataset.shader;
   } else {
     SHADERS.fragment = 'base';
   }
@@ -412,15 +414,15 @@ const reset = (collection, className) => {
     }
 }
 
-const setupTrackSlider = () => {
+const iconPrevTrack = document.querySelector('.tracks .prev');
+const iconNextTrack = document.querySelector('.tracks .next');
 
-  const prevTrackElt = document.querySelector('.controls .prev');
-  const nextTrackElt = document.querySelector('.controls .next');
+const setupTrackSlider = () => {
 
   const splide = new Splide('#track-list', {
     type: 'loop',
     focus: 'center',
-    perPage: 5,
+    perPage: 7,
     rewind: true,
     arrows: false,
     pagination: false,
@@ -428,17 +430,25 @@ const setupTrackSlider = () => {
     snap: true,
     slideFocus: true,
     keyboard: true,
-    padding: 50,
+    padding: 0,
     updateOnMove: true,
     breakpoints: {
-      800: {
-        perPage: 3
+      2000: {
+        perPage: 5
+      },
+      1600: {
+        perPage: 3,
+        padding: 250
+      },
+      1200: {
+        perPage: 1,
+        padding: 350
+      },
+      1000: {
+        padding: 250
       },
       600: {
-        perPage: 2,
-      },
-      400: {
-        perPage: 1
+        padding: 150
       }
     }
   });
@@ -459,11 +469,11 @@ const setupTrackSlider = () => {
     });
   }
 
-  prevTrackElt.addEventListener('click', () => {
+  iconPrevTrack.addEventListener('click', () => {
     splide.go('-1');
   });
 
-  nextTrackElt.addEventListener('click', () => {
+  iconNextTrack.addEventListener('click', () => {
     splide.go('+1');
   });
 
@@ -513,6 +523,14 @@ intro_cta.addEventListener('click', () => {
   iconBack.classList.add('active');
   animateStage();
   mainElement.classList.add('launched');
+  iconNextTrack.classList.add('active');
+});
+
+trackElt.addEventListener('click', () => {
+  alert('a');
+  iconPause.classList.add('active');
+  enterStage();
+  setTimeout(play, 1000);
 });
 
 menu_cta.addEventListener('click', () => {
@@ -747,6 +765,7 @@ const setupSceneIntro = () => {
 setupSceneIntro();
 
 function animateStage() {
+  // 1 to 2
   let tl = gsap.timeline();
   tl.add('launch');
   tl.to(overlayElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
@@ -756,6 +775,7 @@ function animateStage() {
 }
 
 function getBackToSage() {
+  // 3 to 2
   let tl = gsap.timeline();
   tl.add('back');
   tl.to(overlayElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
@@ -763,6 +783,7 @@ function getBackToSage() {
 }
 
 function enterStage() {
+  // 2 to 3
   let tl = gsap.timeline();
   tl.add('enter');
   tl.to(cameraIntro.position, {z: -5, duration: 1, ease: Power2.easeInOut}, 'enter');
@@ -773,6 +794,7 @@ function enterStage() {
 }
 
 function animateStageIntro() {
+  // 0 to 1
   let tl = gsap.timeline();
   tl.from(cameraIntro.position, {y: 20, duration: 2, ease: Power2.easeOut});
 }
@@ -799,8 +821,8 @@ function initAnimation() {
     document.querySelector('.loader').style.display = 'none';
     document.querySelector('.intro > .inner').classList.add('active');
     iconBack.classList.add('active');
-    //mainElement.classList.add('launched');
-    //animateStage();
+    mainElement.classList.add('launched');
+    animateStage();
   }
   
 }
@@ -846,9 +868,9 @@ const tick = () => {
 
     const time = clock.getElapsedTime() * .01;
 
-    noInteractionTime += 0.01;
+    console.log(time);
 
-    console.log(noInteractionTime);
+    noInteractionTime += 0.01;
 
     if(noInteractionTime > 2) {
       toggleNavigations(false);

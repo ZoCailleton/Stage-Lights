@@ -41,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit&display=swap" rel="stylesheet">
-    <title>The Space Visualizer - A Three JS Experience</title>
+    <title>Stage Lights - Generate show lights based on songs</title>
   </head>
   <body>
 
@@ -59,7 +59,7 @@
         <a href="https://www.gobelins.fr/" target="_blank">
           <img class="link neon neon4" src="./assets/logo-gobelins.png" alt="Gobelins">
         </a>
-        <img class="icon back neon neon4" src="./assets/icon-back.png" alt="Retour à l'accueil">
+        <img class="icon back neon neon4" src="./assets/icon-top.png" alt="Retour à l'accueil">
       </nav>
 
       <nav class="navigation right">
@@ -86,6 +86,9 @@
         <section class="menu">
 
           <div id="track-list" class="splide tracks">
+
+            <img class="icon prev" src="./assets/icon-back.png" alt="Previous track">
+            <img class="icon next" src="./assets/icon-next.png" alt="Next track">
             
             <div class="splide__track">
               <div class="splide__list">
@@ -274,6 +277,46 @@
                   <p class="author">Bad Bunny</p>
                   <audio src="./audio/la-romana.mp3"></audio>
                 </div>
+                <div data-verse="0.21" data-shader="violet" class="splide__slide track">
+                  <div class="cover">
+                    <img src="./covers/graduation.jpeg" alt="Graduation by Kanye West">
+                  </div>
+                  <h3 class="title">Flashing Lights</h3>
+                  <p class="author">Kanye West</p>
+                  <audio src="./audio/flashing-lights.mp3"></audio>
+                </div>
+                <div data-verse="0.1625" data-shader="green" class="splide__slide track">
+                  <div class="cover">
+                    <img src="./covers/run-boy-run.jpg" alt="Run Boy Run by Woodkid">
+                  </div>
+                  <h3 class="title">Run Boy Run</h3>
+                  <p class="author">Woodkid</p>
+                  <audio src="./audio/run-boy-run.mp3"></audio>
+                </div>
+                <div data-verse="0.10" data-shader="rave" class="splide__slide track">
+                  <div class="cover">
+                    <img src="./covers/highway-to-hell.jpg" alt="Highway to Hell by ACDC">
+                  </div>
+                  <h3 class="title">Highway to Hell</h3>
+                  <p class="author">ACDC</p>
+                  <audio src="./audio/highway-to-hell.mp3"></audio>
+                </div>
+                <div data-verse="0.0" data-shader="green" class="splide__slide track">
+                  <div class="cover">
+                    <img src="./covers/viva-la-vida.jpg" alt="Viva La Vida by Coldplay">
+                  </div>
+                  <h3 class="title">Viva La Vida</h3>
+                  <p class="author">Coldplay</p>
+                  <audio src="./audio/viva-la-vida.mp3"></audio>
+                </div>
+                <div data-verse="0.1425" class="splide__slide track">
+                  <div class="cover">
+                    <img src="./covers/run-boy-run.jpg" alt="Run Boy Run by Woodkid">
+                  </div>
+                  <h3 class="title">Stage Lights</h3>
+                  <p class="author">Zo</p>
+                  <audio src="./audio/140-epic.mp3"></audio>
+                </div>
 
               </div>
             </div>
@@ -281,11 +324,9 @@
           </div>
           
           <div class="controls">
-            <img class="prev" src="./assets/icon-back.png" alt="Previous track">
             <div class="cta start">
               <div>Chose this song</div>
             </div>
-            <img class="next" src="./assets/icon-next.png" alt="Next track">
           </div>
 
         </section>
