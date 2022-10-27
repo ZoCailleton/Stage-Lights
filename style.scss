@@ -95,13 +95,20 @@ body {
     flex-direction: column-reverse;
     justify-content: space-between;
     z-index: 1;
+    transition: 300ms;
     &.left {
         align-items: flex-start;
         left: 0;
+        &.side {
+            transform: translateX(-100px);
+        }
     }
     &.right {
         align-items: flex-end;
         right: 0;
+        &.side {
+            transform: translateX(100px);
+        }
     }
     .icon,
     .link {
@@ -228,7 +235,7 @@ section {
                 &.is-active {
                     opacity: 1;
                     .cover {
-                        border: 4px solid rgb(93, 177, 255);
+                        border: 4px solid #fff;
                         @media screen and (max-width: 500px) {
                             border: 0;
                         }

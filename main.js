@@ -15,9 +15,7 @@ import songs from './data/songs.json';
  * TODO :
  * - Générer les musiques en JSON
  * - Neon lights
- * - Texture sur le plane
  * - Controls
- * - Disparition des icon après un délai
  * - Howler
  */
 
@@ -52,9 +50,12 @@ const lerp = (start, end, t = 0.5) => {
   return start * (1 - t) + end * t;
 }
 
+let noInteractionTime;
+
 window.addEventListener('mousemove', e => {
   MOUSE.x = e.clientX / window.innerWidth - .5;
   MOUSE.y = e.clientY / window.innerHeight - .5;
+  noInteractionTime = 0;
 });
 
 let SCENE = 'intro';
@@ -341,6 +342,7 @@ const play = () => {
 
   clock = new THREE.Clock();
   clockIntro = null;
+  verse = false;
 
   neonSound.play();
   audioElement.play();
@@ -631,7 +633,7 @@ const setupParticlesIntro = () => {
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
     particleMesh.position.x = getRandomFloatFromInterval(-10, 10, 2);
     particleMesh.position.y = getRandomFloatFromInterval(1, 20, 2);
-    particleMesh.position.z = getRandomFloatFromInterval(-20, 10, 2);
+    particleMesh.position.z = getRandomFloatFromInterval(-1, 10, 2);
 
     particlesIntro.push(particleMesh);
 
@@ -681,6 +683,12 @@ const iconPause = document.querySelector('.navigation .icon.pause');
 const iconFullscreen = document.querySelector('.navigation .icon.fullscreen');
 const iconGobelins = document.querySelector('.navigation .link');
 const menuElt = document.querySelector('.menu');
+
+const toggleNavigations = state => {
+  for(let elt of document.querySelectorAll('.navigation')) {
+    state ? elt.classList.remove('side') : elt.classList.add('side');
+  }
+}
 
 iconBack.addEventListener('click', () => {
 
@@ -837,6 +845,16 @@ const tick = () => {
   if(SCENE === 'stage') {
 
     const time = clock.getElapsedTime() * .01;
+
+    noInteractionTime += 0.01;
+
+    console.log(noInteractionTime);
+
+    if(noInteractionTime > 2) {
+      toggleNavigations(false);
+    } else {
+      toggleNavigations(true);
+    }
 
     if(!PAUSE) {
 
