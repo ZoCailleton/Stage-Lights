@@ -186,8 +186,15 @@ const setupScene = () => {
 }
 
 let audioElement = null;
+let justMoved = false;
 
 const getCurrentTrack = () => {
+
+  justMoved = true;
+  
+  setTimeout(() => {
+    justMoved = false;
+  }, 1000);
 
   let track = document.querySelector(`.splide__slide.is-active`);
   if(track == undefined) track = document.querySelector('.splide__slide:first-child');
@@ -459,8 +466,38 @@ const setupTrackSlider = () => {
   splide.on('move', getCurrentTrack);
 
   window.addEventListener('keydown', e => {
-    if(e.key === 'ArrowLeft') splide.go('-1');
-    if(e.key === 'ArrowRight') splide.go('+1');
+    
+    if(SCENE === 'intro') {
+
+      if(e.key === 'ArrowLeft') {
+        iconPrevTrack.classList.add('hovered');
+        setTimeout(() => {
+          iconPrevTrack.classList.remove('hovered');
+        }, 100);
+        splide.go('-1');
+      }
+  
+      if(e.key === 'ArrowRight') {
+        iconNextTrack.classList.add('hovered');
+        setTimeout(() => {
+          iconNextTrack.classList.remove('hovered');
+        }, 100);
+        splide.go('+1');
+      }
+      
+      if(e.key === 'ArrowUp') backToIntro();
+      if(e.key === 'ArrowDown') goToMenu();
+      if(e.key === 'Enter') launchStage();
+    }
+
+    if(SCENE === 'stage') {
+
+      if(e.key === 'ArrowLeft') backToMenuFromStage();
+      
+    }
+    
+    if(e.key === 'f') toggleFullScreen();
+
   });
 
   for(let track of document.querySelectorAll('.splide__slide:not(.is-active)')) {
@@ -520,20 +557,34 @@ const menu_cta = document.querySelector('.menu .cta.start');
 
 const mainElement = document.querySelector('main');
 
-intro_cta.addEventListener('click', () => {
-  iconTop.classList.add('active');
+function goToMenu() {
+
+  iconLogo.classList.add('active');
   animateStage();
   mainElement.classList.add('launched');
   iconNextTrack.classList.add('active');
-});
 
-menu_cta.addEventListener('click', () => {
-  iconTop.classList.remove('active');
+}
+
+intro_cta.addEventListener('click', goToMenu);
+
+function launchStage() {
+  iconLogo.classList.remove('active');
   iconBack.classList.add('active');
   iconPause.classList.add('active');
   enterStage();
   setTimeout(play, 1000);
-});
+}
+
+for(let elt of document.querySelectorAll('.splide__slide')) {
+  elt.addEventListener('click', () => {
+    if(elt.classList.contains('is-active') && !justMoved) {
+      launchStage();
+    }
+  });
+}
+
+menu_cta.addEventListener('click', launchStage);
 
 // ========== SCENE INTRO ========== //
 
@@ -692,40 +743,50 @@ function toggleFullScreen() {
 }
 
 const overlayElt = document.querySelector('.overlay');
-const iconTop = document.querySelector('.icon.top');
+const iconLogo = document.querySelector('.icon.logo');
 const iconBack = document.querySelector('.icon.back');
 const iconPause = document.querySelector('.icon.pause');
 const iconFullscreen = document.querySelector('.icon.fullscreen');
-const iconGobelins = document.querySelector('.link.logo');
+const iconGobelins = document.querySelector('.link.partner');
 const menuElt = document.querySelector('.menu');
 
 const toggleNavigations = state => {
-  for(let elt of document.querySelectorAll('.navigation')) {
-    state ? elt.classList.remove('side') : elt.classList.add('side');
+  for(let elt of document.querySelectorAll('.icon, .link.partner')) {
+    if(state) {
+      elt.classList.remove('side');
+      cvs.style.cursor = 'default';
+    } else {
+      elt.classList.add('side');
+      cvs.style.cursor = 'none';
+    }
   }
 }
 
-iconTop.addEventListener('click', () => {
+function backToIntro() {
 
   mainElement.classList.remove('launched');
-  iconTop.classList.remove('active');
+  iconLogo.classList.remove('active');
   iconPause.classList.remove('active');
   getBackToSage();
   
-});
+}
 
-iconBack.addEventListener('click', () => {
+iconLogo.addEventListener('click', backToIntro);
+
+function backToMenuFromStage() {
 
   iconBack.classList.remove('active');
   iconPause.classList.remove('active');
-  iconTop.classList.add('active');
+  iconLogo.classList.add('active');
   mainElement.classList.add('active');
   audioElement.pause();
   SCENE = 'intro';
   clockIntro = new THREE.Clock();
   animateStage();
+  
+}
 
-});
+iconBack.addEventListener('click', backToMenuFromStage);
 
 const togglePause = () => {PAUSE = !PAUSE;
   if(PAUSE) {
@@ -865,8 +926,6 @@ const tick = () => {
   if(SCENE === 'stage') {
 
     const time = clock.getElapsedTime() * .01;
-
-    console.log(time);
 
     noInteractionTime += 0.01;
 

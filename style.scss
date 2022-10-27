@@ -104,6 +104,7 @@ $spaceIcon: 35px;
     position: fixed;
     z-index: 1;
     cursor: pointer;
+    transition: 300ms transform;
     &:hover {
         filter: invert(100%);
     }
@@ -112,26 +113,35 @@ $spaceIcon: 35px;
     }
     &.left {
         left: $spaceIcon;
-        &.side {
-            transform: translateX(-100px);
-        }
     }
     &.right {
         right: $spaceIcon;
-        &.side {
-            transform: translateX(100px);
-        }
     }
     &.center {
-        height: 2em;
         left: 50%;
         transform: translateX(-50%);
     }
+    &.back-top {
+        height: 1.5em;
+    }
+    &.logo {
+        height: 1.5em;
+        &:hover {
+            opacity: .5 !important;
+            filter: none;
+        }
+    }
     &.top {
         top: $spaceIcon;
+        &.side {
+            transform: translateY(-100px);
+        }
     }
     &.bottom {
         bottom: $spaceIcon;
+        &.side {
+            transform: translateY(100px);
+        }
     }
 }
 
@@ -226,13 +236,13 @@ section {
         align-items: center;
         .tracks {
             width: 100%;
-            margin-top: 4.5em;
+            padding-top: 2em;
             display: flex;
             position: relative;
-            .icon {
+            .icon-slider {
                 height: 4em;
                 position: absolute;
-                top: 125px;
+                top: 9em;
                 z-index: 2;
                 cursor: pointer;
                 &.prev {
@@ -241,7 +251,8 @@ section {
                 &.next {
                     right: 8%;
                 }
-                &:hover {
+                &:hover,
+                &.hovered {
                     filter: invert(100%);
                 }
             }
@@ -306,7 +317,7 @@ section {
         }
         .controls {
             margin-top: 2.5em;
-            display: flex;
+            display: none;
             align-items: center;
             gap: 2em;
             img {
