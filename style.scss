@@ -73,63 +73,65 @@ body {
     }
 }
 
-.overlay,
-.navigation {
-    height: 100%;
-    position: fixed;
-    top: 0;
-}
-
 .overlay {
     width: 100%;
+    height: 100%;
     background: radial-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+    position: fixed;
+    top: 0;
+    left: 0;
     pointer-events: none;
 }
 
-.navigation {
-    padding: 35px;
-    @media screen and (max-width: 400px) {
-        padding: 20px;
+.link {
+    img {
+        height: 4em;
     }
-    display: flex;
-    flex-direction: column-reverse;
-    justify-content: space-between;
+}
+
+.icon {
+    height: 3em;
+}
+
+$spaceIcon: 35px;
+@media screen and (max-width: 400px) {
+    $spaceIcon: 20px;
+}
+
+.icon,
+.link {
+    display: none;
+    position: fixed;
     z-index: 1;
-    transition: 300ms;
+    cursor: pointer;
+    &:hover {
+        filter: invert(100%);
+    }
+    &.active {
+        display: block;
+    }
     &.left {
-        align-items: flex-start;
-        left: 0;
+        left: $spaceIcon;
         &.side {
             transform: translateX(-100px);
         }
     }
     &.right {
-        align-items: flex-end;
-        right: 0;
+        right: $spaceIcon;
         &.side {
             transform: translateX(100px);
         }
     }
-    .icon,
-    .link {
-        display: none;
-        cursor: pointer;
-        &:hover {
-            filter: invert(100%);
-        }
-        &.active {
-            display: block;
-        }
+    &.center {
+        height: 2em;
+        left: 50%;
+        transform: translateX(-50%);
     }
-    .icon {
-        height: 3em;
-        transition: 300ms;
+    &.top {
+        top: $spaceIcon;
     }
-    a {
-        display: block;
-        .link {
-            height: 3em;
-        }
+    &.bottom {
+        bottom: $spaceIcon;
     }
 }
 
@@ -282,11 +284,6 @@ section {
                     justify-content: center;
                     align-items: center;
                     overflow: hidden;
-                    &:hover {
-                        img {
-                            opacity: .5;
-                        }
-                    }
                     img {
                         width: 100%;
                         height: 100%;
