@@ -27,10 +27,11 @@ import {
 
 /**
  * TODO :
- * - Generate music with JSON
+ * - Generate musics elements with JSON
  * - Howler ambiance sound
- * - Intro bloom
+ * - Intro bloom bug
  * - Remove the stage bloom persistance
+ * - Sound icon
  */
 
 const SIZE = {
@@ -47,14 +48,8 @@ const lerp = (start, end, t = 0.5) => {
   return start * (1 - t) + end * t;
 }
 
-let noInteractionTime;
-
-window.addEventListener('mousemove', e => {
-  MOUSE.x = e.clientX / window.innerWidth - .5;
-  MOUSE.y = e.clientY / window.innerHeight - .5;
-  noInteractionTime = 0;
-});
-
+let noInteractionTime = 0;
+let debug = false;
 let gui = null;
 
 // Three objects
@@ -89,14 +84,40 @@ let clockIntro = new THREE.Clock();
 let SCENE = 'intro';
 let PAUSE = false;
 let STEP = 1;
+
 let SHADERS = {
   vertex: 'base',
   fragment: 'base'
 }
 
-// ========== DEBUG ========== //
+const SHADERS_LIST = [
+  'rave',
+  'blue',
+  'green',
+  'violet'
+]
 
-let debug = window.location.hash && window.location.hash === '#debug';
+window.addEventListener('mousemove', e => {
+  
+  MOUSE.x = e.clientX / window.innerWidth - .5;
+  MOUSE.y = e.clientY / window.innerHeight - .5;
+  
+  // Reset the "no interaction" counter
+  noInteractionTime = 0;
+
+});
+
+// ========== URL NAVIGATION ========== //
+
+let hash = window.location.hash;
+
+if(hash) {
+  
+  hash = hash.split('#')[1];
+
+  if(hash === 'debug') debug = true;
+
+}
 
 if(debug) gui = new dat.GUI();
 
@@ -143,6 +164,8 @@ const reset = (collection, className) => {
     elt.classList.remove(className);
   }
 }
+
+const shaderExists = name => SHADERS_LIST.includes(name);
 
 // ========== AUDIO ========== //
 
@@ -199,6 +222,10 @@ const setupCanvas = () => {
   
   cvs = document.createElement('canvas');
   document.querySelector('.app').append(cvs);
+
+  cvs.addEventListener('click', () => {
+    noInteractionTime = 0;
+  });
 
   setupCanvasSize();
   
@@ -398,41 +425,31 @@ const play = () => {
       value: dataArray,
     },
   };
+
+  if(debug) {
+
+    const shadersFolder = gui.addFolder('Shaders');
+    shadersFolder.open()
+
+  }
   
   setupScene();
   setupPlaneMiddle();
   setupPlanesVerse();
-  if(SHADERS.fragment === 'rave') setupParticles(0xd61609);
-  else if(SHADERS.fragment === 'blue') setupParticles(0x69d7ff);
-  else setupParticles();
+
+  if(SHADERS.fragment === 'rave') {
+    setupParticles(0xd61609);
+  } else if(SHADERS.fragment === 'blue') {
+    setupParticles(0x69d7ff);
+  } else if(SHADERS.fragment === 'green') {
+    setupParticles(0x4be362);
+  } else {
+    setupParticles();
+  }
 
 }
 
 // ========== SCENE INTRO ========== //
-
-introCta.addEventListener('click', goToMenu);
-
-function launchStage() {
-  
-  STEP = 3;
-
-  manageMenuElementsVisibility();
-
-  enterStageTween();
-
-  setTimeout(play, 1000);
-
-}
-
-for(let elt of document.querySelectorAll('.splide__slide')) {
-  elt.addEventListener('click', () => {
-    if(elt.classList.contains('is-active') && !justMoved) {
-      launchStage();
-    }
-  });
-}
-
-menuCta.addEventListener('click', launchStage);
 
 const setupCameraIntro = () => {
 
@@ -592,7 +609,9 @@ const getCurrentTrack = () => {
   verseStart = Number(track.dataset.verse);
   audioElement = track.querySelector('audio');
 
-  if(track.dataset.shader != undefined) {
+  let trackShader = track.dataset.shader;
+
+  if(trackShader != undefined && shaderExists(trackShader)) {
     SHADERS.fragment = track.dataset.shader;
   } else {
     SHADERS.fragment = 'base';
@@ -624,6 +643,14 @@ const setupIntroHeading = () => {
 setupIntroHeading();
 
 // ========== SLIDER ========== //
+
+for(let elt of document.querySelectorAll('.splide__slide')) {
+  elt.addEventListener('click', () => {
+    if(elt.classList.contains('is-active') && !justMoved) {
+      launchStage();
+    }
+  });
+}
 
 const setupTrackSlider = () => {
 
@@ -728,6 +755,8 @@ const setupTrackSlider = () => {
 
 }
 
+setupTrackSlider();
+
 const createTrackElement = (_data) => {
 
   const trackElt = createHTMLElement('div', 'track');
@@ -743,8 +772,6 @@ const createTrackElement = (_data) => {
   return trackElt;
   
 }
-
-setupTrackSlider();
 
 function toggleFullScreen() {
 
@@ -778,9 +805,7 @@ const manageMenuElementsVisibility = () => {
   iconPause.classList.remove('active');
   iconBack.classList.remove('active');
 
-  if(STEP === 1) {
-    iconLogo.classList.add('active');
-  } else if(STEP === 2) {
+  if(STEP === 2) {
     iconLogo.classList.add('active');
   } else if(STEP === 3) {
     iconBack.classList.add('active');
@@ -830,6 +855,18 @@ function goToMenuFromStage() {
   
 }
 
+function launchStage() {
+  
+  STEP = 3;
+
+  manageMenuElementsVisibility();
+
+  enterStageTween();
+
+  setTimeout(play, 1000);
+
+}
+
 const togglePause = () => {PAUSE = !PAUSE;
 
   if(PAUSE) {
@@ -841,14 +878,6 @@ const togglePause = () => {PAUSE = !PAUSE;
   }
 
 }
-
-window.addEventListener('keypress', e => {
-  if(e.keyCode === 32) togglePause();
-});
-
-iconFullscreen.addEventListener('click', () => {
-  toggleFullScreen();
-});
 
 function animateStageTween() {
 
@@ -915,6 +944,8 @@ function initAnimation() {
 
     document.querySelector('.loader').style.display = 'none';
     document.querySelector('.intro > .inner').classList.add('active');
+    iconFullscreen.classList.add('active');
+    iconGobelins.classList.add('active');
     iconBack.classList.add('active');
     mainElement.classList.add('launched');
     animateStageTween();
@@ -923,9 +954,16 @@ function initAnimation() {
   
 }
 
+menuCta.addEventListener('click', launchStage);
 iconLogo.addEventListener('click', backToIntro);
+introCta.addEventListener('click', goToMenu);
 iconBack.addEventListener('click', goToMenuFromStage);
 iconPause.addEventListener('click', togglePause);
+iconFullscreen.addEventListener('click', toggleFullScreen);
+
+window.addEventListener('keypress', e => {
+  if(e.keyCode === 32) togglePause();
+});
 
 // ========== RENDER LOOP ========== //
 
@@ -1036,6 +1074,11 @@ const setupSceneIntro = () => {
 const startExperience = () => {
 
   setupSceneIntro();
+
+  if(hash === 'menu') {
+    goToMenu();
+  }
+
   tick();
 
 }

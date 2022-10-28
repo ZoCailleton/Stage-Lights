@@ -84,13 +84,19 @@ body {
 }
 
 .link {
+    &:hover {
+        opacity: .5 !important;
+    }
     img {
-        height: 4em;
+        height: 3em;
     }
 }
 
 .icon {
     height: 3em;
+    &:hover {
+        filter: invert(100%);
+    }
 }
 
 $spaceIcon: 35px;
@@ -105,9 +111,6 @@ $spaceIcon: 35px;
     z-index: 1;
     cursor: pointer;
     transition: 300ms transform;
-    &:hover {
-        filter: invert(100%);
-    }
     &.active {
         display: block;
     }
@@ -120,9 +123,6 @@ $spaceIcon: 35px;
     &.center {
         left: 50%;
         transform: translateX(-50%);
-    }
-    &.back-top {
-        height: 1.5em;
     }
     &.logo {
         height: 1.5em;
