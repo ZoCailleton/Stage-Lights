@@ -210,8 +210,10 @@ section {
             font-size: 10em;
             text-transform: uppercase;
             transform-style: preserve-3d;
-            @media screen and (max-width: 600px) {
+            @media screen and (max-width: 800px) {
                 gap: 0;
+            }
+            @media screen and (max-width: 600px) {
                 font-size: 8em;
             }
             .letter {

@@ -1,40 +1,37 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import * as dat from 'dat.gui';
-import gsap, {Power2} from 'gsap';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+import * as dat from 'dat.gui';
+import gsap, {Power2} from 'gsap';
 import { Splide } from '@splidejs/splide';
 
 import songs from './data/songs.json';
-
-/**
- * TODO :
- * - Générer les musiques en JSON
- * - Neon lights
- * - Controls
- * - Howler
- */
 
 import './reset.css';
 import './style.scss';
 
 import {
-  vertexShader,
-  vertexShader2,
-  vertexShader3,
-  fragmentShader,
-  fragmentShader2,
-  fragmentShader3,
-  fragmentShader4,
-  particleVertexShader,
-  particleFragmentShader,
+  introVert,
+  baseVert,
+  baseFrag,
+  violetFrag,
+  greenFrag,
+  introFrag,
   raveFrag,
   blueFrag
 } from "./shaders/shaders";
+
+/**
+ * TODO :
+ * - Generate music with JSON
+ * - Howler ambiance sound
+ * - Intro bloom
+ * - Remove the stage bloom persistance
+ */
 
 const SIZE = {
   width: window.innerWidth,
@@ -58,41 +55,119 @@ window.addEventListener('mousemove', e => {
   noInteractionTime = 0;
 });
 
-let SCENE = 'intro';
-let PAUSE = false;
-
-// Objects to init
 let gui = null;
 
-let verseStart = 0.13;
-
+// Three objects
 let cvs = null;
 let scene = null;
 let camera = null;
 let renderer = null;
 let clock = null;
-let clockIntro = new THREE.Clock();
+let uniforms = null;
+let composer = null;
+let bloomPass = null;
+let planeMeshMiddle = null;
+const particles = [];
 
+let sceneIntro = null;
+let cameraIntro = null;
+let rendererIntro = null;
+let composerIntro = null;
+let screenIntroMat = null;
+const particlesIntro = [];
+
+// Audio objects
 let analyser = null;
 let audioContext = null;
 let source = null;
 let dataArray = null;
 
-let uniforms = null;
+// Init needed objects
+let verseStart = 0.13;
+let clockIntro = new THREE.Clock();
 
-let composer = null;
-
+let SCENE = 'intro';
+let PAUSE = false;
+let STEP = 1;
 let SHADERS = {
   vertex: 'base',
   fragment: 'base'
 }
 
-// Check the url to enter debug mode
+// ========== DEBUG ========== //
+
 let debug = window.location.hash && window.location.hash === '#debug';
 
-if(debug) {
-  // Debug
-  gui = new dat.GUI();
+if(debug) gui = new dat.GUI();
+
+// ========== HTML Elements ========== //
+
+const overlayElt = document.querySelector('.overlay');
+
+const mainElement = document.querySelector('main');
+const menuElt = document.querySelector('section.menu');
+
+const introCta = document.querySelector('.intro .cta');
+const menuCta = document.querySelector('.menu .cta.start');
+
+const iconLogo = document.querySelector('.icon.logo');
+const iconBack = document.querySelector('.icon.back');
+const iconPause = document.querySelector('.icon.pause');
+const iconFullscreen = document.querySelector('.icon.fullscreen');
+const iconGobelins = document.querySelector('.link.partner');
+
+const iconPrevTrack = document.querySelector('.tracks .prev');
+const iconNextTrack = document.querySelector('.tracks .next');
+
+// ========== UTILS ========== //
+
+const getRandomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
+const getRandomFloatFromInterval = (min, max, decimals) => {
+  const str = (Math.random() * (max - min) + min).toFixed(decimals);
+  return parseFloat(str);
+}
+
+const createHTMLElement = (tag, className, value=null) => {
+  const elt = document.createElement(tag);
+  elt.classList.add(className);
+  if(value) {
+    if(tag === 'img') elt.src = value;
+    else elt.innerHTML = value;
+  }
+  return elt;
+}
+
+const reset = (collection, className) => {
+  for(let elt of document.querySelectorAll(collection)) {
+    elt.classList.remove(className);
+  }
+}
+
+// ========== AUDIO ========== //
+
+const setupAudioContext = () => {
+
+	audioContext = new window.AudioContext();
+	source = audioContext.createMediaElementSource(audioElement);
+	analyser = audioContext.createAnalyser();
+	source.connect(analyser);
+	analyser.connect(audioContext.destination);
+	analyser.fftSize = 1024;
+	dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+}
+
+// ========== THREE - Lights scene ========== //
+
+const setupCanvasSize = () => {
+
+  cvs.width = SIZE.width;
+  cvs.height = SIZE.height;
+
+  cvs.style.width = SIZE.width;
+  cvs.style.height = SIZE.height;
+
 }
 
 window.addEventListener('resize', () => {
@@ -100,11 +175,7 @@ window.addEventListener('resize', () => {
   SIZE.width = window.innerWidth;
   SIZE.height = window.innerHeight;
 
-  cvs.width = SIZE.width;
-  cvs.height = SIZE.height;
-
-  cvs.style.width = SIZE.width;
-  cvs.style.height = SIZE.height;
+  setupCanvasSize();
 
   cameraIntro.aspect = SIZE.width / SIZE.height;
   cameraIntro.updateProjectionMatrix();
@@ -129,35 +200,11 @@ const setupCanvas = () => {
   cvs = document.createElement('canvas');
   document.querySelector('.app').append(cvs);
 
-  cvs.width = SIZE.width;
-  cvs.height = SIZE.height;
-
-  cvs.style.width = SIZE.width;
-  cvs.style.height = SIZE.height;
+  setupCanvasSize();
   
 }
 
-let bloomPass;
-
-const setupScene = () => {
-
-  scene = new THREE.Scene();
-  
-  camera = new THREE.PerspectiveCamera(100, SIZE.width / SIZE.height, 0.1, 100);
-
-  camera.position.x = 0;
-  camera.position.z = 100;
-  camera.rotation.z = 0.8;
-
-  scene.add(camera);
-
-  renderer = new THREE.WebGLRenderer({
-    canvas: cvs,
-    antialias: true
-  });
-
-  renderer.setSize(SIZE.width, SIZE.height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const setupBloom = () => {
 
   const renderScene = new RenderPass(scene, camera);
   composer = new EffectComposer(renderer);
@@ -172,7 +219,9 @@ const setupScene = () => {
   );
   composer.addPass(bloomPass);
 
-  //new OrbitControls( camera, renderer.domElement )
+}
+
+const setupLights = () => {
 
   let ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
   ambientLight.castShadow = false;
@@ -184,54 +233,6 @@ const setupScene = () => {
   scene.add(spotLight);
 
 }
-
-let audioElement = null;
-let justMoved = false;
-
-const getCurrentTrack = () => {
-
-  justMoved = true;
-  
-  setTimeout(() => {
-    justMoved = false;
-  }, 1000);
-
-  let track = document.querySelector(`.splide__slide.is-active`);
-  if(track == undefined) track = document.querySelector('.splide__slide:first-child');
-
-  verseStart = Number(track.dataset.verse);
-  audioElement = track.querySelector('audio');
-
-  if(track.dataset.shader != undefined) {
-    SHADERS.fragment = track.dataset.shader;
-  } else {
-    SHADERS.fragment = 'base';
-  }
-
-}
-
-getCurrentTrack();
-
-const setupAudioContext = () => {
-
-	audioContext = new window.AudioContext();
-	source = audioContext.createMediaElementSource(audioElement);
-	analyser = audioContext.createAnalyser();
-	source.connect(analyser);
-	analyser.connect(audioContext.destination);
-	analyser.fftSize = 1024;
-	dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-}
-
-const getRandomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
-
-function getRandomFloatFromInterval(min, max, decimals) {
-  const str = (Math.random() * (max - min) + min).toFixed(decimals);
-  return parseFloat(str);
-}
-
-const particles = [];
 
 const setupParticles = (_color='0xffffff') => {
 
@@ -259,16 +260,41 @@ const setupParticles = (_color='0xffffff') => {
 
 }
 
-let planeMeshIntro = null;
+const setupScene = () => {
 
-const setupPlaneIntro = () => {
+  scene = new THREE.Scene();
+  
+  camera = new THREE.PerspectiveCamera(100, SIZE.width / SIZE.height, 0.1, 100);
+
+  camera.position.x = 0;
+  camera.position.z = 100;
+  camera.rotation.z = 0.8;
+
+  scene.add(camera);
+
+  renderer = new THREE.WebGLRenderer({
+    canvas: cvs,
+    antialias: true
+  });
+
+  renderer.setSize(SIZE.width, SIZE.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  setupBloom();
+
+  //new OrbitControls( camera, renderer.domElement )
+
+  setupLights();
+
+}
+
+const setupPlaneMiddle = () => {
 
   const planeGeometry1 = new THREE.PlaneGeometry(50, 50, 150, 150);
   const planeCustomMaterial1 = new THREE.ShaderMaterial({
     uniforms,
-    vertexShader: vertexShader(),
-    //vertexShader: vertexShader3(),
-    fragmentShader: fragmentShader()
+    vertexShader: introVert(),
+    fragmentShader: introFrag()
   });
 
   if(SHADERS.fragment === 'rave') {
@@ -276,15 +302,15 @@ const setupPlaneIntro = () => {
   } else if(SHADERS.fragment === 'blue') {
     planeCustomMaterial1.fragmentShader = blueFrag();
   } else if(SHADERS.fragment === 'violet') {
-    planeCustomMaterial1.fragmentShader = fragmentShader3();
+    planeCustomMaterial1.fragmentShader = violetFrag();
   } else if(SHADERS.fragment === 'green') {
-    planeCustomMaterial1.fragmentShader = fragmentShader4();
+    planeCustomMaterial1.fragmentShader = greenFrag();
   } else {
-    planeCustomMaterial1.fragmentShader = fragmentShader2();
+    planeCustomMaterial1.fragmentShader = baseFrag();
   }
 
-  planeMeshIntro = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
-  scene.add(planeMeshIntro);
+  planeMeshMiddle = new THREE.Mesh(planeGeometry1, planeCustomMaterial1);
+  scene.add(planeMeshMiddle);
 
 }
 
@@ -300,8 +326,8 @@ const setupPlanesVerse = () => {
       const planeGeometry = new THREE.PlaneGeometry(75, 75, 150, 150);
       const planeCustomMaterial = new THREE.ShaderMaterial({
         uniforms,
-        vertexShader: vertexShader2(),
-        fragmentShader: fragmentShader2()
+        vertexShader: baseVert(),
+        fragmentShader: baseFrag()
       });
 
       if(SHADERS.fragment === 'rave') {
@@ -309,11 +335,11 @@ const setupPlanesVerse = () => {
       } else if(SHADERS.fragment === 'blue') {
         planeCustomMaterial.fragmentShader = blueFrag();
       } else if(SHADERS.fragment === 'violet') {
-        planeCustomMaterial.fragmentShader = fragmentShader3();
+        planeCustomMaterial.fragmentShader = violetFrag();
       } else if(SHADERS.fragment === 'green') {
-        planeCustomMaterial.fragmentShader = fragmentShader4();
+        planeCustomMaterial.fragmentShader = greenFrag();
       } else {
-        planeCustomMaterial.fragmentShader = fragmentShader2();
+        planeCustomMaterial.fragmentShader = baseFrag();
       }
 
       const planeMesh = new THREE.Mesh(planeGeometry, planeCustomMaterial);
@@ -374,7 +400,7 @@ const play = () => {
   };
   
   setupScene();
-  setupPlaneIntro();
+  setupPlaneMiddle();
   setupPlanesVerse();
   if(SHADERS.fragment === 'rave') setupParticles(0xd61609);
   else if(SHADERS.fragment === 'blue') setupParticles(0x69d7ff);
@@ -382,201 +408,20 @@ const play = () => {
 
 }
 
-const createHTMLElement = (tag, className, value=null) => {
-  const elt = document.createElement(tag);
-  elt.classList.add(className);
-  if(value) {
-    if(tag === 'img') elt.src = value;
-    else elt.innerHTML = value;
-  }
-  return elt;
-}
+// ========== SCENE INTRO ========== //
 
-const setupIntroHeading = () => {
-
-  const opacities = ['neon1', 'neon2', 'neon3', 'neon4'];
-  
-  const heading = document.querySelector('.intro .heading');
-  const words = heading.textContent.split(' ');
-  heading.innerHTML = '';
-  for(let word of words) {
-    const wordElt = createHTMLElement('span', 'word');
-    for(let letter of word.split('')) {
-      const letterElt = createHTMLElement('span', 'letter', letter);
-      letterElt.classList.add(opacities[getRandomIntFromInterval(0, 3)], 'neon');
-      wordElt.append(letterElt);
-    }
-    heading.append(wordElt);
-  }
-
-}
-
-setupIntroHeading();
-
-const reset = (collection, className) => {
-    for(let elt of document.querySelectorAll(collection)) {
-      elt.classList.remove(className);
-    }
-}
-
-const iconPrevTrack = document.querySelector('.tracks .prev');
-const iconNextTrack = document.querySelector('.tracks .next');
-
-const setupTrackSlider = () => {
-
-  const splide = new Splide('#track-list', {
-    type: 'loop',
-    focus: 'center',
-    perPage: 7,
-    rewind: true,
-    arrows: false,
-    pagination: false,
-    gap: 35,
-    snap: true,
-    slideFocus: true,
-    keyboard: true,
-    padding: 0,
-    updateOnMove: true,
-    breakpoints: {
-      2000: {
-        perPage: 5
-      },
-      1600: {
-        perPage: 3,
-        padding: 250
-      },
-      1200: {
-        perPage: 1,
-        padding: 350
-      },
-      1000: {
-        padding: 300
-      },
-      800: {
-        padding: 200
-      },
-      600: {
-        padding: 50
-      }
-    }
-  });
-
-  splide.mount();
-
-  splide.on('move', getCurrentTrack);
-
-  window.addEventListener('keydown', e => {
-
-    noInteractionTime = 0;
-    
-    if(SCENE === 'intro') {
-
-      if(e.key === 'ArrowLeft') {
-        iconPrevTrack.classList.add('hovered');
-        setTimeout(() => {
-          iconPrevTrack.classList.remove('hovered');
-        }, 100);
-        splide.go('-1');
-      }
-  
-      if(e.key === 'ArrowRight') {
-        iconNextTrack.classList.add('hovered');
-        setTimeout(() => {
-          iconNextTrack.classList.remove('hovered');
-        }, 100);
-        splide.go('+1');
-      }
-      
-      if(e.key === 'ArrowUp') backToIntro();
-      if(e.key === 'ArrowDown') goToMenu();
-      if(e.key === 'Enter') launchStage();
-      
-    }
-
-    if(SCENE === 'stage') {
-
-      if(e.key === 'ArrowLeft') backToMenuFromStage();
-      
-    }
-    
-    if(e.key === 'f') toggleFullScreen();
-
-  });
-
-  for(let track of document.querySelectorAll('.splide__slide:not(.is-active)')) {
-    let id = Number(track.ariaLabel.split(' of ')[0]) - 1;
-    track.addEventListener('click', () => {
-      splide.go(id);
-    });
-  }
-
-  iconPrevTrack.addEventListener('click', () => {
-    splide.go('-1');
-  });
-
-  iconNextTrack.addEventListener('click', () => {
-    splide.go('+1');
-  });
-
-}
-
-const trackList = document.getElementById('track-list');
-
-const createTrackElement = (_data) => {
-
-  const trackElt = createHTMLElement('div', 'track');
-  trackElt.classList.add('glide__slide');
-  const coverElt = createHTMLElement('div', 'cover');
-  const imgElt = createHTMLElement('img', null, `./covers/${_data.cover}`);
-  const headingElt = createHTMLElement('h3', 'title', _data.title);
-  const authorElt = createHTMLElement('p', 'author', _data.author);
-
-  coverElt.append(imgElt);
-  trackElt.append(coverElt, headingElt, authorElt);
-
-  return trackElt;
-  
-}
-
-const loadTrackElts = () => {
-
-  const listTrackElt = createHTMLElement('div', 'glide__track');
-  const listElt = createHTMLElement('div', 'glide__slides');
-
-  for(let song of songs) {
-    listElt.append(createTrackElement(song));
-  }
-
-  listTrackElt.append(listElt);
-  trackList.append(listTrackElt);
-
-}
-
-//loadTrackElts();
-setupTrackSlider();
-
-const intro_cta = document.querySelector('.intro .cta');
-const menu_cta = document.querySelector('.menu .cta.start');
-
-const mainElement = document.querySelector('main');
-
-function goToMenu() {
-
-  iconLogo.classList.add('active');
-  animateStage();
-  mainElement.classList.add('launched');
-  iconNextTrack.classList.add('active');
-
-}
-
-intro_cta.addEventListener('click', goToMenu);
+introCta.addEventListener('click', goToMenu);
 
 function launchStage() {
-  iconLogo.classList.remove('active');
-  iconBack.classList.add('active');
-  iconPause.classList.add('active');
-  enterStage();
+  
+  STEP = 3;
+
+  manageMenuElementsVisibility();
+
+  enterStageTween();
+
   setTimeout(play, 1000);
+
 }
 
 for(let elt of document.querySelectorAll('.splide__slide')) {
@@ -587,16 +432,7 @@ for(let elt of document.querySelectorAll('.splide__slide')) {
   });
 }
 
-menu_cta.addEventListener('click', launchStage);
-
-// ========== SCENE INTRO ========== //
-
-let sceneIntro = null;
-let cameraIntro = null;
-let rendererIntro = null;
-let composerIntro = null;
-
-const headingIntroElt = document.querySelector('.intro .heading');
+menuCta.addEventListener('click', launchStage);
 
 const setupCameraIntro = () => {
 
@@ -642,11 +478,7 @@ const screenIntroAnimation = () => {
   tl.to(screenIntroMat, {opacity: 0, duration: .25, ease: Power2.easeInOut});
 }
 
-let screenIntroMat = null;
-
-const setupStageModel = () => {
-
-  const texture = new THREE.TextureLoader().load( './covers/melo.jpg' );
+const setupIntroScreen = () => {
 
   const boxGeo = new THREE.PlaneGeometry(10, 4, 10);
   screenIntroMat = new THREE.MeshStandardMaterial({
@@ -659,6 +491,10 @@ const setupStageModel = () => {
   boxMesh.position.y = 2.5;
   screenIntroMat.opacity = 0;
   sceneIntro.add(boxMesh);
+
+}
+
+const setupStageModel = () => {
 
   setInterval(() => {
     screenIntroAnimation();
@@ -687,8 +523,6 @@ const setupStageModel = () => {
 
 }
 
-const particlesIntro = [];
-
 const setupParticlesIntro = () => {
   
   for(let i=0; i<200; i++) {
@@ -698,9 +532,11 @@ const setupParticlesIntro = () => {
     const particleMaterial = new THREE.MeshLambertMaterial({
       color: 0xffffff
     });
+
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
+
     particleMesh.position.x = getRandomFloatFromInterval(-10, 10, 2);
-    particleMesh.position.y = getRandomFloatFromInterval(1, 20, 2);
+    particleMesh.position.y = getRandomFloatFromInterval(-3, 20, 2);
     particleMesh.position.z = getRandomFloatFromInterval(-1, 10, 2);
 
     particlesIntro.push(particleMesh);
@@ -737,24 +573,193 @@ const setupBloomIntro = () => {
 
 }
 
+// ========== UI ========== //
+
+let audioElement = null;
+let justMoved = false;
+
+const getCurrentTrack = () => {
+
+  justMoved = true;
+  
+  setTimeout(() => {
+    justMoved = false;
+  }, 1000);
+
+  let track = document.querySelector(`.splide__slide.is-active`);
+  if(track == undefined) track = document.querySelector('.splide__slide:first-child');
+
+  verseStart = Number(track.dataset.verse);
+  audioElement = track.querySelector('audio');
+
+  if(track.dataset.shader != undefined) {
+    SHADERS.fragment = track.dataset.shader;
+  } else {
+    SHADERS.fragment = 'base';
+  }
+
+}
+
+getCurrentTrack();
+
+const setupIntroHeading = () => {
+
+  const opacities = ['neon1', 'neon2', 'neon3', 'neon4'];
+  
+  const heading = document.querySelector('.intro .heading');
+  const words = heading.textContent.split(' ');
+  heading.innerHTML = '';
+  for(let word of words) {
+    const wordElt = createHTMLElement('span', 'word');
+    for(let letter of word.split('')) {
+      const letterElt = createHTMLElement('span', 'letter', letter);
+      letterElt.classList.add(opacities[getRandomIntFromInterval(0, 3)], 'neon');
+      wordElt.append(letterElt);
+    }
+    heading.append(wordElt);
+  }
+
+}
+
+setupIntroHeading();
+
+// ========== SLIDER ========== //
+
+const setupTrackSlider = () => {
+
+  // Generate slider with Splide
+  const splide = new Splide('#track-list', {
+    type: 'loop',
+    focus: 'center',
+    perPage: 7,
+    rewind: true,
+    arrows: false,
+    pagination: false,
+    gap: 35,
+    snap: true,
+    slideFocus: true,
+    keyboard: true,
+    padding: 0,
+    updateOnMove: true,
+    breakpoints: {
+      2000: {
+        perPage: 5
+      },
+      1600: {
+        perPage: 3,
+        padding: 250
+      },
+      1200: {
+        perPage: 1,
+        padding: 350
+      },
+      1000: {
+        padding: 300
+      },
+      800: {
+        padding: 200
+      },
+      600: {
+        padding: 50
+      }
+    }
+  });
+
+  // Slider activation
+  splide.mount();
+
+  // On slider movement
+  splide.on('move', getCurrentTrack);
+  
+  // Slider keyboard control
+  window.addEventListener('keydown', e => {
+
+    // Reset the "no interaction" counter
+    noInteractionTime = 0;
+    
+    if(SCENE === 'intro') {
+
+      if(e.key === 'ArrowLeft') {
+        iconPrevTrack.classList.add('hovered');
+        setTimeout(() => {
+          iconPrevTrack.classList.remove('hovered');
+        }, 100);
+        splide.go('-1');
+      }
+  
+      if(e.key === 'ArrowRight') {
+        iconNextTrack.classList.add('hovered');
+        setTimeout(() => {
+          iconNextTrack.classList.remove('hovered');
+        }, 100);
+        splide.go('+1');
+      }
+      
+      if(e.key === 'ArrowUp') backToIntro();
+      if(e.key === 'ArrowDown') goToMenu();
+      if(e.key === 'Enter') launchStage();
+      
+    }
+
+    if(SCENE === 'stage') {
+
+      if(e.key === 'ArrowLeft') goToMenuFromStage();
+      
+    }
+    
+    if(e.key === 'f') toggleFullScreen();
+
+  });
+
+  for(let track of document.querySelectorAll('.splide__slide:not(.is-active)')) {
+    let id = Number(track.ariaLabel.split(' of ')[0]) - 1;
+    track.addEventListener('click', () => {
+      splide.go(id);
+    });
+  }
+
+  iconPrevTrack.addEventListener('click', () => {
+    splide.go('-1');
+  });
+
+  iconNextTrack.addEventListener('click', () => {
+    splide.go('+1');
+  });
+
+}
+
+const createTrackElement = (_data) => {
+
+  const trackElt = createHTMLElement('div', 'track');
+  trackElt.classList.add('glide__slide');
+  const coverElt = createHTMLElement('div', 'cover');
+  const imgElt = createHTMLElement('img', null, `./covers/${_data.cover}`);
+  const headingElt = createHTMLElement('h3', 'title', _data.title);
+  const authorElt = createHTMLElement('p', 'author', _data.author);
+
+  coverElt.append(imgElt);
+  trackElt.append(coverElt, headingElt, authorElt);
+
+  return trackElt;
+  
+}
+
+setupTrackSlider();
+
 function toggleFullScreen() {
+
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
   } else if (document.exitFullscreen) {
     document.exitFullscreen();
   }
+
 }
 
-const overlayElt = document.querySelector('.overlay');
-const iconLogo = document.querySelector('.icon.logo');
-const iconBack = document.querySelector('.icon.back');
-const iconPause = document.querySelector('.icon.pause');
-const iconFullscreen = document.querySelector('.icon.fullscreen');
-const iconGobelins = document.querySelector('.link.partner');
-const menuElt = document.querySelector('.menu');
-
 const toggleNavigations = state => {
+
   for(let elt of document.querySelectorAll('.icon, .link.partner')) {
+    
     if(state) {
       elt.classList.remove('side');
       cvs.style.cursor = 'default';
@@ -762,36 +767,71 @@ const toggleNavigations = state => {
       elt.classList.add('side');
       cvs.style.cursor = 'none';
     }
+
   }
+  
+}
+
+const manageMenuElementsVisibility = () => {
+
+  iconLogo.classList.remove('active');
+  iconPause.classList.remove('active');
+  iconBack.classList.remove('active');
+
+  if(STEP === 1) {
+    iconLogo.classList.add('active');
+  } else if(STEP === 2) {
+    iconLogo.classList.add('active');
+  } else if(STEP === 3) {
+    iconBack.classList.add('active');
+    iconPause.classList.add('active');
+  }
+
 }
 
 function backToIntro() {
 
+  STEP = 1;
+  
   mainElement.classList.remove('launched');
-  iconLogo.classList.remove('active');
-  iconPause.classList.remove('active');
-  getBackToSage();
+
+  manageMenuElementsVisibility();
+  getBackToStageTween();
   
 }
 
-iconLogo.addEventListener('click', backToIntro);
+function goToMenu() {
 
-function backToMenuFromStage() {
+  STEP = 2;
 
-  iconBack.classList.remove('active');
-  iconPause.classList.remove('active');
-  iconLogo.classList.add('active');
-  mainElement.classList.add('active');
-  audioElement.pause();
+  mainElement.classList.add('launched');
+
+  manageMenuElementsVisibility();
+  animateStageTween();
+
+}
+
+function goToMenuFromStage() {
+
+  STEP = 2;
   SCENE = 'intro';
+
+  // Stop the current playing music
+  audioElement.pause();
+
+  // Init the intro clock
   clockIntro = new THREE.Clock();
-  animateStage();
+
+  // Showing the UI
+  mainElement.classList.add('active');
+
+  manageMenuElementsVisibility();
+  animateStageTween();
   
 }
-
-iconBack.addEventListener('click', backToMenuFromStage);
 
 const togglePause = () => {PAUSE = !PAUSE;
+
   if(PAUSE) {
     audioElement.pause();
     iconPause.src = './assets/icon-play.png';
@@ -799,9 +839,8 @@ const togglePause = () => {PAUSE = !PAUSE;
     audioElement.play();
     iconPause.src = './assets/icon-pause.png';
   }
-}
 
-iconPause.addEventListener('click', togglePause);
+}
 
 window.addEventListener('keypress', e => {
   if(e.keyCode === 32) togglePause();
@@ -811,41 +850,31 @@ iconFullscreen.addEventListener('click', () => {
   toggleFullScreen();
 });
 
-const setupSceneIntro = () => {
-  
-  sceneIntro = new THREE.Scene();
+function animateStageTween() {
 
-  setupCameraIntro();
-  setupRendererIntro();
-  setupLightsIntro();
-  setupStageModel();
-  setupParticlesIntro();
-  setupBloomIntro();
-
-}
-
-setupSceneIntro();
-
-function animateStage() {
-  // 1 to 2
+  // Step 1 to 2
   let tl = gsap.timeline();
   tl.add('launch');
   tl.to(overlayElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
   tl.to(cameraIntro.position, {z: 5, y: 2.5, duration: 1, ease: Power2.easeInOut}, 'launch');
   tl.from(menuElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
   tl.to(menuElt, {opacity: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
+
 }
 
-function getBackToSage() {
-  // 3 to 2
+function getBackToStageTween() {
+
+  // Step 3 to 2
   let tl = gsap.timeline();
   tl.add('back');
   tl.to(overlayElt, {opacity: 0, duration: 1, ease: Power2.easeInOut}, 'launch');
   tl.to(cameraIntro.position, {z: 8, y: 1, duration: 1, ease: Power2.easeInOut}, 'launch');
+
 }
 
-function enterStage() {
-  // 2 to 3
+function enterStageTween() {
+
+  // Step 2 to 3
   let tl = gsap.timeline();
   tl.add('enter');
   tl.to(cameraIntro.position, {z: -5, duration: 1, ease: Power2.easeInOut}, 'enter');
@@ -853,12 +882,15 @@ function enterStage() {
   tl.to(menuElt, {opacity: 0, duration: .25, ease: Power2.easeInOut, onComplete: () => {
     mainElement.classList.remove('active');
   }}, 'enter');
+
 }
 
-function animateStageIntro() {
-  // 0 to 1
+function animateStageIntroTween() {
+
+  // Step 0 to 1
   let tl = gsap.timeline();
   tl.from(cameraIntro.position, {y: 20, duration: 2, ease: Power2.easeOut});
+  
 }
 
 function initAnimation() {
@@ -869,7 +901,7 @@ function initAnimation() {
 
     setTimeout(() => {
       document.querySelector('.loader').style.display = 'none';
-      animateStageIntro();
+      animateStageIntroTween();
     }, 1000);
   
     setTimeout(() => {
@@ -880,14 +912,22 @@ function initAnimation() {
     }, 2000);
 
   } else {
+
     document.querySelector('.loader').style.display = 'none';
     document.querySelector('.intro > .inner').classList.add('active');
     iconBack.classList.add('active');
     mainElement.classList.add('launched');
-    animateStage();
+    animateStageTween();
+
   }
   
 }
+
+iconLogo.addEventListener('click', backToIntro);
+iconBack.addEventListener('click', goToMenuFromStage);
+iconPause.addEventListener('click', togglePause);
+
+// ========== RENDER LOOP ========== //
 
 let xc = 0;
 let yc = 0;
@@ -957,7 +997,7 @@ const tick = () => {
       }
 
       if(time > verseStart && !verse) {
-        planeMeshIntro.removeFromParent();
+        planeMeshMiddle.removeFromParent();
         showPlanesVerse();
         verse = true;
       }
@@ -977,4 +1017,27 @@ const tick = () => {
 
 }
 
-tick();
+// ========== SETUP ========== //
+
+const setupSceneIntro = () => {
+  
+  sceneIntro = new THREE.Scene();
+  
+  setupCameraIntro();
+  setupRendererIntro();
+  setupLightsIntro();
+  setupStageModel();
+  setupIntroScreen();
+  setupParticlesIntro();
+  setupBloomIntro();
+
+}
+
+const startExperience = () => {
+
+  setupSceneIntro();
+  tick();
+
+}
+
+startExperience();

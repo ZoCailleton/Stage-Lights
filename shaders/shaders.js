@@ -1,4 +1,35 @@
-const vertexShader = () => {
+const introVert = () => {
+  return /* glsl */`
+
+      varying float x;
+      varying float y;
+      varying float z;
+
+      varying vec3 vUv;
+
+      uniform float u_time;
+      uniform float u_amplitude;
+
+      uniform float[64] u_data_arr;
+
+      void main() {
+
+          vUv = position;
+
+          x = abs(position.x);
+          y = abs(position.y);
+
+          float floor_x = round(x);
+          float floor_y = round(y);
+          
+          z = sin(u_data_arr[int(floor_x)] / 50.0 + u_data_arr[int(floor_y)] / 50.0) * u_amplitude;
+          
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, z, 1.0);
+      }
+    `;
+};
+
+const baseVert = () => {
   return /* glsl */`
 
       varying float x;
@@ -22,25 +53,15 @@ const vertexShader = () => {
           float floor_x = round(x);
           float floor_y = round(y);
 
-          //float x_multiplier = (44.0 - x) / 8.0;
-          //float y_multiplier = (32.0 - y) / 8.0;
-
-          //z = position.z;
-          //z = abs(position.x) + abs(position.y);
-          //z = sin(abs(position.x) + abs(position.y));
-          //z = sin(abs(position.x) + abs(position.y) + u_time * .005);
-          
-          z = sin(u_data_arr[int(floor_x)] / 50.0 + u_data_arr[int(floor_y)] / 50.0) * u_amplitude;
-          //z = (u_data_arr[int(floor_x)] / 50.0 + u_data_arr[int(floor_y)] / 50.0) * 2.0;
-          
-          //vec3 zNoise = pnoise(vec3(0., 0., 0.));
+          z = sin(u_data_arr[int(floor_x)] / 30.0 + u_data_arr[int(floor_y)] / 30.0);
+          z = z * u_amplitude;
           
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, z, 1.0);
       }
     `;
 };
 
-const fragmentShader = () => {
+const introFrag = () => {
   return /* glsl */`
 
     varying float x;
@@ -60,81 +81,7 @@ const fragmentShader = () => {
   `;
 };
 
-const vertexShader2 = () => {
-  return /* glsl */`
-
-      varying float x;
-      varying float y;
-      varying float z;
-
-      varying vec3 vUv;
-
-      uniform float u_time;
-      uniform float u_amplitude;
-
-      uniform float[64] u_data_arr;
-
-      void main() {
-
-          vUv = position;
-
-          x = abs(position.x);
-          y = abs(position.y);
-
-          float floor_x = round(x);
-          float floor_y = round(y);
-
-          //float x_multiplier = (44.0 - x) / 8.0;
-          //float y_multiplier = (32.0 - y) / 8.0;
-
-          //z = position.z;
-          //z = abs(position.x) + abs(position.y);
-          //z = sin(abs(position.x) + abs(position.y));
-          //z = sin(abs(position.x) + abs(position.y) + u_time * .005);
-
-          z = sin(u_data_arr[int(floor_x)] / 30.0 + u_data_arr[int(floor_y)] / 30.0);
-          z = z * u_amplitude;
-          //z = (u_data_arr[int(floor_x)] / 50.0 + u_data_arr[int(floor_y)] / 50.0) * 2.0;
-          
-          //vec3 zNoise = pnoise(vec3(0., 0., 0.));
-          
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, z, 1.0);
-      }
-    `;
-};
-
-const vertexShader3 = () => {
-  return /* glsl */`
-
-      varying float x;
-      varying float y;
-      varying float z;
-
-      varying vec3 vUv;
-
-      uniform float u_time;
-
-      uniform float[64] u_data_arr;
-
-      void main() {
-
-          vUv = position;
-
-          x = abs(position.x);
-          y = abs(position.y);
-
-          float floor_x = round(x);
-          float floor_y = round(y);
-
-          z = sin(u_data_arr[int(floor_x)] / 30.0 + u_data_arr[int(floor_y)] / 30.0);
-          z = z * 3.;
-          
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, z, 1.0);
-      }
-    `;
-};
-
-const fragmentShader2 = () => {
+const baseFrag = () => {
   return /* glsl */`
 
     varying float x;
@@ -154,7 +101,7 @@ const fragmentShader2 = () => {
   `;
 };
 
-const fragmentShader3 = () => {
+const violetFrag = () => {
   return /* glsl */`
 
     varying float x;
@@ -174,7 +121,7 @@ const fragmentShader3 = () => {
   `;
 };
 
-const fragmentShader4 = () => {
+const greenFrag = () => {
   return /* glsl */`
 
     varying float x;
@@ -234,32 +181,13 @@ const blueFrag = () => {
   `;
 };
 
-const particleVertexShader = () => {
-  return /* glsl */`
-      void main() {
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 0.);
-      }
-    `;
-};
-
-const particleFragmentShader = () => {
-  return /* glsl */`
-    void main() {
-      gl_FragColor = vec4(1., 1., 1., 1.);
-    }
-  `;
-};
-
 export {
-  vertexShader,
-  vertexShader2,
-  vertexShader3,
-  fragmentShader,
-  fragmentShader2,
-  fragmentShader3,
-  fragmentShader4,
-  particleVertexShader,
-  particleFragmentShader,
+  introVert,
+  baseVert,
+  introFrag,
+  baseFrag,
+  violetFrag,
+  greenFrag,
   raveFrag,
   blueFrag
 };
