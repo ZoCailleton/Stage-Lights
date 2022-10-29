@@ -8,11 +8,18 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as dat from 'dat.gui';
 import gsap, {Power2} from 'gsap';
 import { Splide } from '@splidejs/splide';
+import { URLHash } from '@splidejs/splide-extension-url-hash';
 
 import songs from './data/songs.json';
 
 import './reset.css';
 import './style.scss';
+
+import {
+  getRandomIntFromInterval,
+  getRandomFloatFromInterval,
+  createHTMLElement,
+} from './_utils';
 
 import {
   introVert,
@@ -32,6 +39,7 @@ import {
  * - Intro bloom bug
  * - Remove the stage bloom persistance
  * - Sound icon
+ * - Hash navigation
  */
 
 const SIZE = {
@@ -97,6 +105,8 @@ const SHADERS_LIST = [
   'violet'
 ]
 
+const shaderExists = name => SHADERS_LIST.includes(name);
+
 window.addEventListener('mousemove', e => {
   
   MOUSE.x = e.clientX / window.innerWidth - .5;
@@ -139,33 +149,6 @@ const iconGobelins = document.querySelector('.link.partner');
 
 const iconPrevTrack = document.querySelector('.tracks .prev');
 const iconNextTrack = document.querySelector('.tracks .next');
-
-// ========== UTILS ========== //
-
-const getRandomIntFromInterval = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
-
-const getRandomFloatFromInterval = (min, max, decimals) => {
-  const str = (Math.random() * (max - min) + min).toFixed(decimals);
-  return parseFloat(str);
-}
-
-const createHTMLElement = (tag, className, value=null) => {
-  const elt = document.createElement(tag);
-  elt.classList.add(className);
-  if(value) {
-    if(tag === 'img') elt.src = value;
-    else elt.innerHTML = value;
-  }
-  return elt;
-}
-
-const reset = (collection, className) => {
-  for(let elt of document.querySelectorAll(collection)) {
-    elt.classList.remove(className);
-  }
-}
-
-const shaderExists = name => SHADERS_LIST.includes(name);
 
 // ========== AUDIO ========== //
 
@@ -261,7 +244,7 @@ const setupLights = () => {
 
 }
 
-const setupParticles = (_color='0xffffff') => {
+const setupParticles = (_color='ffffff') => {
 
   for(let i=0; i<1000; i++) {
 
@@ -270,7 +253,7 @@ const setupParticles = (_color='0xffffff') => {
     const particleGeometry = new THREE.BoxGeometry(particleSize, particleSize, particleSize);
 
     const particleMaterial = new THREE.MeshLambertMaterial({
-      color: _color
+      color: `${_color}`
     });
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
     particleMesh.position.x = getRandomIntFromInterval(-100, 100);
@@ -438,11 +421,11 @@ const play = () => {
   setupPlanesVerse();
 
   if(SHADERS.fragment === 'rave') {
-    setupParticles(0xd61609);
+    setupParticles('d61609');
   } else if(SHADERS.fragment === 'blue') {
-    setupParticles(0x69d7ff);
+    setupParticles('69d7ff');
   } else if(SHADERS.fragment === 'green') {
-    setupParticles(0x4be362);
+    setupParticles('4be362');
   } else {
     setupParticles();
   }
@@ -606,6 +589,8 @@ const getCurrentTrack = () => {
   let track = document.querySelector(`.splide__slide.is-active`);
   if(track == undefined) track = document.querySelector('.splide__slide:first-child');
 
+  console.log(track.querySelector('.title').textContent);
+
   verseStart = Number(track.dataset.verse);
   audioElement = track.querySelector('audio');
 
@@ -668,6 +653,8 @@ const setupTrackSlider = () => {
     keyboard: true,
     padding: 0,
     updateOnMove: true,
+    lazyLoad: 'nearby',
+    trimSpace: false,
     breakpoints: {
       2000: {
         perPage: 5
@@ -693,7 +680,7 @@ const setupTrackSlider = () => {
   });
 
   // Slider activation
-  splide.mount();
+  splide.mount({URLHash});
 
   // On slider movement
   splide.on('move', getCurrentTrack);
@@ -706,25 +693,34 @@ const setupTrackSlider = () => {
     
     if(SCENE === 'intro') {
 
-      if(e.key === 'ArrowLeft') {
-        iconPrevTrack.classList.add('hovered');
-        setTimeout(() => {
-          iconPrevTrack.classList.remove('hovered');
-        }, 100);
-        splide.go('-1');
-      }
-  
-      if(e.key === 'ArrowRight') {
-        iconNextTrack.classList.add('hovered');
-        setTimeout(() => {
-          iconNextTrack.classList.remove('hovered');
-        }, 100);
-        splide.go('+1');
-      }
+      if(STEP === 2) {
+
+        if(e.key === 'ArrowLeft') {
+          iconPrevTrack.classList.add('hovered');
+          setTimeout(() => {
+            iconPrevTrack.classList.remove('hovered');
+          }, 100);
+          splide.go('-1');
+        }
+    
+        if(e.key === 'ArrowRight') {
+          iconNextTrack.classList.add('hovered');
+          setTimeout(() => {
+            iconNextTrack.classList.remove('hovered');
+          }, 100);
+          splide.go('+1');
+        }
       
-      if(e.key === 'ArrowUp') backToIntro();
-      if(e.key === 'ArrowDown') goToMenu();
-      if(e.key === 'Enter') launchStage();
+        if(e.key === 'ArrowUp') backToIntro();
+        if(e.key === 'Enter') launchStage();
+
+      }
+
+      if(STEP === 1) {
+      
+        if(e.key === 'ArrowDown') goToMenu();
+
+      }
       
     }
 
