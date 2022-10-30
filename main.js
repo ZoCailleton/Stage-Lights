@@ -59,6 +59,7 @@ const lerp = (start, end, t = 0.5) => {
 let noInteractionTime = 0;
 let debug = false;
 let gui = null;
+let splide = null;
 
 // Three objects
 let cvs = null;
@@ -92,6 +93,7 @@ let clockIntro = new THREE.Clock();
 let SCENE = 'intro';
 let PAUSE = false;
 let STEP = 1;
+let AUDIO_LEVEL = 1;
 
 let SHADERS = {
   vertex: 'base',
@@ -141,9 +143,10 @@ const menuElt = document.querySelector('section.menu');
 const introCta = document.querySelector('.intro .cta');
 const menuCta = document.querySelector('.menu .cta.start');
 
-const iconLogo = document.querySelector('.icon.logo');
+const iconLogo = document.querySelector('.app-logo');
 const iconBack = document.querySelector('.icon.back');
 const iconPause = document.querySelector('.icon.pause');
+const iconAudio = document.querySelector('.icon.audio');
 const iconFullscreen = document.querySelector('.icon.fullscreen');
 const iconGobelins = document.querySelector('.link.partner');
 
@@ -194,8 +197,7 @@ window.addEventListener('resize', () => {
     camera.aspect = SIZE.width / SIZE.height;
     camera.updateProjectionMatrix();
 
-    renderer.setSize(SIZE.width, SIZE.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    updateRenderer();
 
   }
 
@@ -253,7 +255,7 @@ const setupParticles = (_color='ffffff') => {
     const particleGeometry = new THREE.BoxGeometry(particleSize, particleSize, particleSize);
 
     const particleMaterial = new THREE.MeshLambertMaterial({
-      color: `${_color}`
+      color: `0x${_color}`
     });
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
     particleMesh.position.x = getRandomIntFromInterval(-100, 100);
@@ -270,9 +272,7 @@ const setupParticles = (_color='ffffff') => {
 
 }
 
-const setupScene = () => {
-
-  scene = new THREE.Scene();
+const setupCamera = () => {
   
   camera = new THREE.PerspectiveCamera(100, SIZE.width / SIZE.height, 0.1, 100);
 
@@ -282,19 +282,33 @@ const setupScene = () => {
 
   scene.add(camera);
 
-  renderer = new THREE.WebGLRenderer({
-    canvas: cvs,
-    antialias: true
-  });
+}
+
+function updateRenderer() {
 
   renderer.setSize(SIZE.width, SIZE.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+}
+
+const setupScene = () => {
+
+  scene = new THREE.Scene();
+
+  renderer = new THREE.WebGLRenderer({
+    canvas: cvs,
+    antialias: true
+  });
+  
+  updateRenderer();
+
+  setupCamera();
   setupBloom();
+  setupLights();
+  setupPlaneMiddle();
+  setupPlanesVerse();
 
   //new OrbitControls( camera, renderer.domElement )
-
-  setupLights();
 
 }
 
@@ -380,6 +394,8 @@ const neonSound = document.getElementById('neon-sound');
 neonSound.volume = .1;
 
 const play = () => {
+
+  console.log('PLAY');
   
   SCENE = 'stage';
 
@@ -417,8 +433,6 @@ const play = () => {
   }
   
   setupScene();
-  setupPlaneMiddle();
-  setupPlanesVerse();
 
   if(SHADERS.fragment === 'rave') {
     setupParticles('d61609');
@@ -640,7 +654,7 @@ for(let elt of document.querySelectorAll('.splide__slide')) {
 const setupTrackSlider = () => {
 
   // Generate slider with Splide
-  const splide = new Splide('#track-list', {
+  splide = new Splide('#track-list', {
     type: 'loop',
     focus: 'center',
     perPage: 7,
@@ -654,7 +668,6 @@ const setupTrackSlider = () => {
     padding: 0,
     updateOnMove: true,
     lazyLoad: 'nearby',
-    trimSpace: false,
     breakpoints: {
       2000: {
         perPage: 5
@@ -682,8 +695,10 @@ const setupTrackSlider = () => {
   // Slider activation
   splide.mount({URLHash});
 
+  splide.go( 1 );
+
   // On slider movement
-  splide.on('move', getCurrentTrack);
+  splide.on('move resize', getCurrentTrack);
   
   // Slider keyboard control
   window.addEventListener('keydown', e => {
@@ -692,6 +707,13 @@ const setupTrackSlider = () => {
     noInteractionTime = 0;
     
     if(SCENE === 'intro') {
+
+      if(STEP === 1) {
+      
+        if(e.key === 'ArrowDown') goToMenu();
+        if(e.key === 'Enter') goToMenu();
+
+      }
 
       if(STEP === 2) {
 
@@ -713,12 +735,6 @@ const setupTrackSlider = () => {
       
         if(e.key === 'ArrowUp') backToIntro();
         if(e.key === 'Enter') launchStage();
-
-      }
-
-      if(STEP === 1) {
-      
-        if(e.key === 'ArrowDown') goToMenu();
 
       }
       
@@ -769,12 +785,33 @@ const createTrackElement = (_data) => {
   
 }
 
+function toggleAudioVolume() {
+
+  if(AUDIO_LEVEL === 1) {
+    AUDIO_LEVEL = 3;
+    audioElement.volume = 1;
+  }
+
+  if(AUDIO_LEVEL === 2) {
+    AUDIO_LEVEL = 1;
+    audioElement.volume = 0;
+  }
+
+  if(AUDIO_LEVEL === 3) {
+    AUDIO_LEVEL = 2;
+    audioElement.volume = .5;
+  }
+
+}
+
 function toggleFullScreen() {
 
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
+    iconFullscreen.classList.add('hovered');
   } else if (document.exitFullscreen) {
     document.exitFullscreen();
+    iconFullscreen.classList.remove('hovered');
   }
 
 }
@@ -795,15 +832,31 @@ const toggleNavigations = state => {
   
 }
 
+const hidePlanes = () => {
+
+  planeMeshMiddle.visible = false;
+  for(let plane of planesVerse) {
+    plane.visible = false;
+  }
+
+}
+
 const manageMenuElementsVisibility = () => {
 
   iconLogo.classList.remove('active');
   iconPause.classList.remove('active');
   iconBack.classList.remove('active');
+  iconAudio.classList.remove('active');
 
+  if(STEP === 1) {
+    iconGobelins.classList.add('active');
+  }
+  
   if(STEP === 2) {
     iconLogo.classList.add('active');
-  } else if(STEP === 3) {
+  }
+  
+  if(STEP === 3) {
     iconBack.classList.add('active');
     iconPause.classList.add('active');
   }
@@ -843,6 +896,9 @@ function goToMenuFromStage() {
   // Init the intro clock
   clockIntro = new THREE.Clock();
 
+  // Hiding planes
+  hidePlanes();
+
   // Showing the UI
   mainElement.classList.add('active');
 
@@ -867,10 +923,10 @@ const togglePause = () => {PAUSE = !PAUSE;
 
   if(PAUSE) {
     audioElement.pause();
-    iconPause.src = './assets/icon-play.png';
+    iconPause.querySelector('img').src = './assets/icon-play.svg';
   } else {
     audioElement.play();
-    iconPause.src = './assets/icon-pause.png';
+    iconPause.querySelector('img').src = './assets/icon-pause.svg';
   }
 
 }
@@ -956,6 +1012,7 @@ introCta.addEventListener('click', goToMenu);
 iconBack.addEventListener('click', goToMenuFromStage);
 iconPause.addEventListener('click', togglePause);
 iconFullscreen.addEventListener('click', toggleFullScreen);
+iconAudio.addEventListener('click', toggleAudioVolume);
 
 window.addEventListener('keypress', e => {
   if(e.keyCode === 32) togglePause();
@@ -973,6 +1030,8 @@ const tick = () => {
   if(SCENE === 'intro') {
 
     const time = clockIntro.getElapsedTime() * .01;
+
+    if(composer != null) composer = null;
 
     if(composerIntro != null) {
       composerIntro.render(sceneIntro, cameraIntro);
@@ -1003,6 +1062,8 @@ const tick = () => {
   if(SCENE === 'stage') {
 
     const time = clock.getElapsedTime() * .01;
+
+    console.log(time);
 
     noInteractionTime += 0.01;
 

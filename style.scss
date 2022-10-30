@@ -28,6 +28,7 @@ body {
         text-transform: uppercase;
         letter-spacing: .1em;
         overflow: hidden;
+        user-select: none;
         .inner {
             transition: transform 300ms;
             > div {
@@ -83,36 +84,40 @@ body {
     pointer-events: none;
 }
 
-.link {
-    &:hover {
-        opacity: .5 !important;
-    }
-    img {
-        height: 3em;
-    }
-}
-
-.icon {
-    height: 3em;
-    &:hover {
-        filter: invert(100%);
-    }
-}
-
 $spaceIcon: 35px;
 @media screen and (max-width: 400px) {
     $spaceIcon: 20px;
 }
 
 .icon,
-.link {
+.link,
+.app-logo {
     display: none;
     position: fixed;
     z-index: 1;
     cursor: pointer;
-    transition: 300ms transform;
+    user-select: none;
+}
+
+.app-logo {
+    height: 2em;
+    left: 50%;
+    top: 50px;
+    transform: translateX(-50%);
+    &:hover {
+        opacity: .5 !important;
+        filter: none;
+    }
     &.active {
         display: block;
+    }
+}
+
+.icon,
+.link {
+    transition: 300ms transform;
+    &.active {
+        display: flex;
     }
     &.left {
         left: $spaceIcon;
@@ -120,28 +125,47 @@ $spaceIcon: 35px;
     &.right {
         right: $spaceIcon;
     }
-    &.center {
-        left: 50%;
-        transform: translateX(-50%);
-    }
-    &.logo {
-        height: 1.5em;
-        &:hover {
-            opacity: .5 !important;
-            filter: none;
-        }
-    }
     &.top {
         top: $spaceIcon;
         &.side {
-            transform: translateY(-100px);
+            transform: translateY(-100px) rotate(45deg);
         }
     }
     &.bottom {
         bottom: $spaceIcon;
         &.side {
-            transform: translateY(100px);
+            transform: translateY(100px) rotate(45deg);
         }
+    }
+}
+
+.icon {
+    width: 2.5em;
+    height: 2.5em;
+    background-color: rgba(0, 0, 0, .85);
+    border: 2px solid #fff;
+    justify-content: center;
+    align-items: center;
+    transform: rotate(45deg);
+    img {
+        height: 30%;
+        transform: rotate(-45deg);
+    }
+    &:hover,
+    &.hovered {
+        background-color: #fff;
+        img {
+            filter: invert(100%);
+        }
+    }
+}
+
+.link {
+    &:hover {
+        opacity: .5 !important;
+    }
+    img {
+        height: 3em;
     }
 }
 
@@ -241,21 +265,22 @@ section {
             padding-top: 2em;
             display: flex;
             position: relative;
-            .icon-slider {
-                height: 4em;
+            .icon {
+                width: 3em;
+                height: 3em;
+                display: flex;
                 position: absolute;
                 top: 9em;
                 z-index: 2;
-                cursor: pointer;
+                img {
+                    height: 30%;
+                    transform: rotate(-45deg);
+                }
                 &.prev {
                     left: 8%;
                 }
                 &.next {
                     right: 8%;
-                }
-                &:hover,
-                &.hovered {
-                    filter: invert(100%);
                 }
             }
             .track {

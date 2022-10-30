@@ -103,12 +103,14 @@
     {
         "title": "Verre d'eau",
         "author": "pxzvc",
+        "verse": 0.175,
         "src": "verre-d-eau.mp3",
         "cover": "verre-d-deau.jpg"
     },
     {
         "title": "Signaler (Slowed & Reverb)",
         "author": "Damso",
+        "verse": 0.275,
         "src": "signaler.mp3",
         "cover": "signaler.jpg"
     }
