@@ -7,6 +7,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import * as dat from 'dat.gui';
 import gsap, {Power2} from 'gsap';
+import { Howl } from 'howler';
 import { Splide } from '@splidejs/splide';
 import { URLHash } from '@splidejs/splide-extension-url-hash';
 
@@ -81,6 +82,11 @@ let screenIntroMat = null;
 const particlesIntro = [];
 
 // Audio objects
+let ambianceSound = null;
+let neonSound = null;
+let tickSound = null;
+let wooshSound = null;
+let loadSound = null;
 let analyser = null;
 let audioContext = null;
 let source = null;
@@ -248,8 +254,6 @@ const setupLights = () => {
 
 const setupParticles = (color) => {
 
-  console.log(color);
-
   for(let i=0; i<1000; i++) {
 
     let particleSize = getRandomFloatFromInterval(.1, .2, 1);
@@ -391,9 +395,6 @@ const showPlanesVerse = () => {
 }
 
 setupCanvas();
-
-const neonSound = document.getElementById('neon-sound');
-neonSound.volume = .1;
 
 const play = () => {
   
@@ -721,6 +722,7 @@ const setupTrackSlider = () => {
             iconPrevTrack.classList.remove('hovered');
           }, 100);
           splide.go('-1');
+          tickSound.play();
         }
     
         if(e.key === 'ArrowRight') {
@@ -729,6 +731,7 @@ const setupTrackSlider = () => {
             iconNextTrack.classList.remove('hovered');
           }, 100);
           splide.go('+1');
+          tickSound.play();
         }
       
         if(e.key === 'ArrowUp') backToIntro();
@@ -756,10 +759,12 @@ const setupTrackSlider = () => {
   }
 
   iconPrevTrack.addEventListener('click', () => {
+    tickSound.play();
     splide.go('-1');
   });
 
   iconNextTrack.addEventListener('click', () => {
+    tickSound.play();
     splide.go('+1');
   });
 
@@ -864,6 +869,8 @@ const manageMenuElementsVisibility = () => {
 function backToIntro() {
 
   STEP = 1;
+
+  wooshSound.play();
   
   mainElement.classList.remove('launched');
 
@@ -875,6 +882,8 @@ function backToIntro() {
 function goToMenu() {
 
   STEP = 2;
+
+  wooshSound.play();
 
   mainElement.classList.add('launched');
 
@@ -888,16 +897,14 @@ function goToMenuFromStage() {
   STEP = 2;
   SCENE = 'intro';
 
-  // Stop the current playing music
   audioElement.pause();
+  wooshSound.play();
+  ambianceSound.fade(0, .5, 1000);
 
-  // Init the intro clock
   clockIntro = new THREE.Clock();
 
-  // Hiding planes
   hidePlanes();
 
-  // Showing the UI
   mainElement.classList.add('active');
 
   manageMenuElementsVisibility();
@@ -908,6 +915,10 @@ function goToMenuFromStage() {
 function launchStage() {
   
   STEP = 3;
+
+  ambianceSound.fade(.5, 0, 1000);
+  wooshSound.play();
+  loadSound.play();
 
   manageMenuElementsVisibility();
 
@@ -988,6 +999,7 @@ function initAnimation() {
       iconFullscreen.classList.add('active');
       iconGobelins.classList.add('active');
       neonSound.play();
+      loadSound.play();
     }, 2000);
 
   } else {
@@ -1007,9 +1019,18 @@ function initAnimation() {
 menuCta.addEventListener('click', launchStage);
 iconLogo.addEventListener('click', backToIntro);
 introCta.addEventListener('click', goToMenu);
-iconBack.addEventListener('click', goToMenuFromStage);
-iconPause.addEventListener('click', togglePause);
-iconFullscreen.addEventListener('click', toggleFullScreen);
+iconBack.addEventListener('click', () => {
+  tickSound.play();
+  goToMenuFromStage();
+});
+iconPause.addEventListener('click', () => {
+  tickSound.play();
+  togglePause();
+});
+iconFullscreen.addEventListener('click', () => {
+  tickSound.play();
+  toggleFullScreen();
+});
 iconAudio.addEventListener('click', toggleAudioVolume);
 
 window.addEventListener('keypress', e => {
@@ -1110,6 +1131,38 @@ const tick = () => {
 
 // ========== SETUP ========== //
 
+const setupAmbianceSound = () => {
+
+  ambianceSound = new Howl({
+    src: ['./audio/ambiance.wav'],
+    volume: .5,
+    loop: true
+  });
+
+  neonSound = new Howl({
+    src: ['./audio/neo.mp3'],
+    volume: .1
+  });
+
+  tickSound = new Howl({
+    src: ['./audio/tick.wav'],
+    volume: .05
+  });
+
+  wooshSound = new Howl({
+    src: ['./audio/woosh.wav'],
+    volume: .1
+  });
+
+  loadSound = new Howl({
+    src: ['./audio/load.wav'],
+    volume: .1
+  });
+  
+  ambianceSound.play();
+
+}
+
 const setupSceneIntro = () => {
   
   sceneIntro = new THREE.Scene();
@@ -1126,6 +1179,7 @@ const setupSceneIntro = () => {
 
 const startExperience = () => {
 
+  setupAmbianceSound();
   setupSceneIntro();
 
   if(hash === 'menu') {
