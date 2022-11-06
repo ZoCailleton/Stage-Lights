@@ -246,7 +246,9 @@ const setupLights = () => {
 
 }
 
-const setupParticles = (_color='ffffff') => {
+const setupParticles = (color) => {
+
+  console.log(color);
 
   for(let i=0; i<1000; i++) {
 
@@ -255,7 +257,7 @@ const setupParticles = (_color='ffffff') => {
     const particleGeometry = new THREE.BoxGeometry(particleSize, particleSize, particleSize);
 
     const particleMaterial = new THREE.MeshLambertMaterial({
-      color: `0x${_color}`
+      color
     });
     const particleMesh = new THREE.Mesh(particleGeometry, particleMaterial);
     particleMesh.position.x = getRandomIntFromInterval(-100, 100);
@@ -394,8 +396,6 @@ const neonSound = document.getElementById('neon-sound');
 neonSound.volume = .1;
 
 const play = () => {
-
-  console.log('PLAY');
   
   SCENE = 'stage';
 
@@ -435,13 +435,13 @@ const play = () => {
   setupScene();
 
   if(SHADERS.fragment === 'rave') {
-    setupParticles('d61609');
+    setupParticles('#d61609');
   } else if(SHADERS.fragment === 'blue') {
-    setupParticles('69d7ff');
+    setupParticles('#69d7ff');
   } else if(SHADERS.fragment === 'green') {
-    setupParticles('4be362');
+    setupParticles('#4be362');
   } else {
-    setupParticles();
+    setupParticles('#ffffff');
   }
 
 }
@@ -602,8 +602,6 @@ const getCurrentTrack = () => {
 
   let track = document.querySelector(`.splide__slide.is-active`);
   if(track == undefined) track = document.querySelector('.splide__slide:first-child');
-
-  console.log(track.querySelector('.title').textContent);
 
   verseStart = Number(track.dataset.verse);
   audioElement = track.querySelector('audio');
@@ -1062,8 +1060,6 @@ const tick = () => {
   if(SCENE === 'stage') {
 
     const time = clock.getElapsedTime() * .01;
-
-    console.log(time);
 
     noInteractionTime += 0.01;
 
