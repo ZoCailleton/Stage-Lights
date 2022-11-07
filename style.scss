@@ -101,9 +101,8 @@ $spaceIcon: 35px;
 
 .app-logo {
     height: 2em;
-    left: 50%;
-    top: 50px;
-    transform: translateX(-50%);
+    left: $spaceIcon;
+    top: $spaceIcon;
     &:hover {
         opacity: .5 !important;
         filter: none;
@@ -140,8 +139,8 @@ $spaceIcon: 35px;
 }
 
 .icon {
-    width: 2.5em;
-    height: 2.5em;
+    width: 2em;
+    height: 2em;
     background-color: rgba(0, 0, 0, .85);
     border: 2px solid #fff;
     justify-content: center;

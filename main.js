@@ -91,6 +91,8 @@ let analyser = null;
 let audioContext = null;
 let source = null;
 let dataArray = null;
+let audioSrc = null;
+let audioElement = null;
 
 // Init needed objects
 let verseStart = 0.13;
@@ -99,7 +101,7 @@ let clockIntro = new THREE.Clock();
 let SCENE = 'intro';
 let PAUSE = false;
 let STEP = 1;
-let AUDIO_LEVEL = 1;
+let AUDIO_STATE = true;
 
 let SHADERS = {
   vertex: 'base',
@@ -162,6 +164,10 @@ const iconNextTrack = document.querySelector('.tracks .next');
 // ========== AUDIO ========== //
 
 const setupAudioContext = () => {
+  
+  audioElement = new Audio(audioSrc);
+  audioElement.play();
+  console.log(audioElement);
 
 	audioContext = new window.AudioContext();
 	source = audioContext.createMediaElementSource(audioElement);
@@ -405,10 +411,9 @@ const play = () => {
   verse = false;
 
   neonSound.play();
-  audioElement.play();
 
   overlayElt.classList.remove('active');
-
+  
   setupAudioContext();
 
   uniforms = {
@@ -590,7 +595,6 @@ const setupBloomIntro = () => {
 
 // ========== UI ========== //
 
-let audioElement = null;
 let justMoved = false;
 
 const getCurrentTrack = () => {
@@ -605,7 +609,7 @@ const getCurrentTrack = () => {
   if(track == undefined) track = document.querySelector('.splide__slide:first-child');
 
   verseStart = Number(track.dataset.verse);
-  audioElement = track.querySelector('audio');
+  audioSrc = track.querySelector('audio').src;
 
   let trackShader = track.dataset.shader;
 
@@ -700,7 +704,7 @@ const setupTrackSlider = () => {
   splide.on('move resize', getCurrentTrack);
   
   // Slider keyboard control
-  window.addEventListener('keydown', e => {
+  window.addEventListener('keyup', e => {
 
     // Reset the "no interaction" counter
     noInteractionTime = 0;
@@ -709,7 +713,6 @@ const setupTrackSlider = () => {
 
       if(STEP === 1) {
       
-        if(e.key === 'ArrowDown') goToMenu();
         if(e.key === 'Enter') goToMenu();
 
       }
@@ -788,21 +791,24 @@ const createTrackElement = (_data) => {
   
 }
 
-function toggleAudioVolume() {
+function toggleAudio() {
 
-  if(AUDIO_LEVEL === 1) {
-    AUDIO_LEVEL = 3;
-    audioElement.volume = 1;
-  }
+  if(AUDIO_STATE) {
 
-  if(AUDIO_LEVEL === 2) {
-    AUDIO_LEVEL = 1;
-    audioElement.volume = 0;
-  }
+    ambianceSound.fade(.5, 0, 1000);
+    tickSound.volume(0);
+    wooshSound.volume(0);
 
-  if(AUDIO_LEVEL === 3) {
-    AUDIO_LEVEL = 2;
-    audioElement.volume = .5;
+    AUDIO_STATE = false;
+    
+  } else {
+
+    ambianceSound.fade(0, .5, 1000);
+    tickSound.volume(.05);
+    wooshSound.volume(.01);
+
+    AUDIO_STATE = true;
+
   }
 
 }
@@ -856,6 +862,7 @@ const manageMenuElementsVisibility = () => {
   }
   
   if(STEP === 2) {
+    iconAudio.classList.add('active');
     iconLogo.classList.add('active');
   }
   
@@ -898,6 +905,7 @@ function goToMenuFromStage() {
   SCENE = 'intro';
 
   audioElement.pause();
+
   wooshSound.play();
   ambianceSound.fade(0, .5, 1000);
 
@@ -913,6 +921,10 @@ function goToMenuFromStage() {
 }
 
 function launchStage() {
+
+  if(STEP === 2) {
+    setTimeout(play, 1000);
+  }
   
   STEP = 3;
 
@@ -923,8 +935,6 @@ function launchStage() {
   manageMenuElementsVisibility();
 
   enterStageTween();
-
-  setTimeout(play, 1000);
 
 }
 
@@ -1031,7 +1041,7 @@ iconFullscreen.addEventListener('click', () => {
   tickSound.play();
   toggleFullScreen();
 });
-iconAudio.addEventListener('click', toggleAudioVolume);
+iconAudio.addEventListener('click', toggleAudio);
 
 window.addEventListener('keypress', e => {
   if(e.keyCode === 32) togglePause();
