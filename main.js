@@ -36,11 +36,8 @@ import {
 /**
  * TODO :
  * - Generate musics elements with JSON
- * - Howler ambiance sound
  * - Intro bloom bug
  * - Remove the stage bloom persistance
- * - Sound icon
- * - Hash navigation
  */
 
 const SIZE = {
@@ -167,7 +164,6 @@ const setupAudioContext = () => {
   
   audioElement = new Audio(audioSrc);
   audioElement.play();
-  console.log(audioElement);
 
 	audioContext = new window.AudioContext();
 	source = audioContext.createMediaElementSource(audioElement);
@@ -1161,7 +1157,7 @@ const setupAmbianceSound = () => {
 
   wooshSound = new Howl({
     src: ['./audio/woosh.wav'],
-    volume: .1
+    volume: .25
   });
 
   loadSound = new Howl({
