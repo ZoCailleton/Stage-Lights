@@ -101,6 +101,7 @@ let SCENE = 'intro';
 let PAUSE = false;
 let STEP = 1;
 let AUDIO_STATE = true;
+let AUDIO_STATE_BEFORE_LEAVE = true;
 
 let SHADERS = {
   vertex: 'base',
@@ -789,23 +790,29 @@ const createTrackElement = (_data) => {
   
 }
 
-function toggleAudio() {
+function toggleAudio(state) {
 
-  if(AUDIO_STATE) {
+  if(state) {
 
-    ambianceSound.fade(.5, 0, 1000);
-    tickSound.volume(0);
-    wooshSound.volume(0);
-
-    AUDIO_STATE = false;
-    
-  } else {
+    AUDIO_STATE = true;
 
     ambianceSound.fade(0, .5, 1000);
     tickSound.volume(.05);
     wooshSound.volume(.01);
 
-    AUDIO_STATE = true;
+    iconAudio.querySelector('img').src = './assets/icon-audio.svg';
+    
+  } else if(state === false) {
+
+    AUDIO_STATE = false;
+    AUDIO_STATE_BEFORE_LEAVE = false;
+
+    if(AUDIO_STATE_BEFORE_LEAVE) ambianceSound.fade(.5, 0, 1000);
+    else ambianceSound.volume(0);
+    tickSound.volume(0);
+    wooshSound.volume(0);
+
+    iconAudio.querySelector('img').src = './assets/no-sound.png';
 
   }
 
@@ -1047,7 +1054,19 @@ iconFullscreen.addEventListener('click', () => {
   tickSound.play();
   toggleFullScreen();
 });
-iconAudio.addEventListener('click', toggleAudio);
+iconAudio.addEventListener('click', () => {
+  toggleAudio(!AUDIO_STATE);
+});
+
+document.addEventListener("visibilitychange", (event) => {
+  if(document.visibilityState == "visible") {
+    if(AUDIO_STATE_BEFORE_LEAVE) {
+      toggleAudio(true);
+    }
+  } else {
+    toggleAudio(false);
+  }
+});
 
 window.addEventListener('keypress', e => {
   if(e.keyCode === 32) togglePause();
