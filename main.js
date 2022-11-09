@@ -38,6 +38,8 @@ import {
  * - Generate musics elements with JSON
  * - Intro bloom bug
  * - Remove the stage bloom persistance
+ * - Colored particles
+ * - Remove sound on tab change
  */
 
 const SIZE = {
@@ -605,7 +607,7 @@ const getCurrentTrack = () => {
   if(track == undefined) track = document.querySelector('.splide__slide:first-child');
 
   verseStart = Number(track.dataset.verse);
-  audioSrc = track.querySelector('audio').src;
+  audioSrc = track.dataset.source;
 
   let trackShader = track.dataset.shader;
 
@@ -900,6 +902,10 @@ function goToMenuFromStage() {
   STEP = 2;
   SCENE = 'intro';
 
+  if(PAUSE) {
+    togglePause(false);
+  }
+
   audioElement.pause();
 
   wooshSound.play();
@@ -934,7 +940,11 @@ function launchStage() {
 
 }
 
-const togglePause = () => {PAUSE = !PAUSE;
+const togglePause = (state) => {
+  
+  if(state) {
+    PAUSE = state;
+  } else PAUSE = !PAUSE;
 
   if(PAUSE) {
     audioElement.pause();
@@ -998,7 +1008,7 @@ function initAnimation() {
     setTimeout(() => {
       document.querySelector('.loader').style.display = 'none';
       animateStageIntroTween();
-    }, 1000);
+    }, 3000);
   
     setTimeout(() => {
       document.querySelector('.intro > .inner').classList.add('active');
@@ -1006,7 +1016,7 @@ function initAnimation() {
       iconGobelins.classList.add('active');
       neonSound.play();
       loadSound.play();
-    }, 2000);
+    }, 5000);
 
   } else {
 
