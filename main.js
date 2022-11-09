@@ -805,10 +805,13 @@ function toggleAudio(state) {
   } else if(state === false) {
 
     AUDIO_STATE = false;
-    AUDIO_STATE_BEFORE_LEAVE = false;
 
-    if(AUDIO_STATE_BEFORE_LEAVE) ambianceSound.fade(.5, 0, 1000);
-    else ambianceSound.volume(0);
+    if(AUDIO_STATE_BEFORE_LEAVE) {
+      ambianceSound.fade(.5, 0, 1000);
+    } else {
+      ambianceSound.volume(0);
+    }
+
     tickSound.volume(0);
     wooshSound.volume(0);
 
@@ -1055,6 +1058,11 @@ iconFullscreen.addEventListener('click', () => {
   toggleFullScreen();
 });
 iconAudio.addEventListener('click', () => {
+  if(AUDIO_STATE) {
+    AUDIO_STATE_BEFORE_LEAVE = false;
+  } else {
+    AUDIO_STATE_BEFORE_LEAVE = true;
+  }
   toggleAudio(!AUDIO_STATE);
 });
 
