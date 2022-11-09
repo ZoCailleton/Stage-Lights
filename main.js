@@ -1125,8 +1125,6 @@ const tick = () => {
 
     const time = clock.getElapsedTime() * .01;
 
-    console.log(time);
-
     noInteractionTime += 0.01;
 
     if(noInteractionTime > 2) {
